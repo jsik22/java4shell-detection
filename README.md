@@ -4,8 +4,8 @@ Java4Shell(CVE-2026-114938) 네트워크 탐지 룰(Snort 3·Suricata)과 그 �
 Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), with a synthetic-pcap regression test. Rules only — no exploit code.
 
 > **주의 / Disclaimer**
-> 이 룰은 [CyberTissue](https://github.com/jsik22/cybertissue)가 공개된 기술 정보를 바탕으로 직접 만들고 직접 시험한 것입니다. 제3자 검증을 거치지 않았고 실제 운영 트래픽에서 오탐을 확인하지 않았으므로 **미완성일 수 있습니다.** 차단(drop) 대신 탐지(alert) 모드로 먼저 돌려 보고, Talos·Emerging Threats 공식 룰이 나오면 비교해 교체를 검토하세요.
-> These rules are self-made and self-tested only. They may be incomplete. Run them in alert mode first and compare with official Talos / Emerging Threats rules when available.
+> 이 룰은 [CyberTissue](https://github.com/jsik22/cybertissue)가 공개된 기술 정보와 공개 PoC의 요청 모양을 바탕으로 직접 만들고 직접 시험한 것으로, **계속 업데이트 중입니다.** 제3자 검증과 실제 운영 트래픽 오탐 확인은 거치지 않았으니 차단(drop) 대신 탐지(alert) 모드로 먼저 돌려 보세요. Emerging Threats 공식 룰과의 비교는 [공식 룰과 비교](#공식-룰과-비교)에 있고, 두 룰은 함께 쓸 수 있습니다.
+> These rules are self-made, self-tested, and continuously updated. They have not been validated by third parties or against production traffic, so run them in alert mode first. A comparison with the official Emerging Threats rules is in the section below; both rule sets can be used together.
 
 ## 취약점 요약
 
