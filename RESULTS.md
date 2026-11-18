@@ -1,9 +1,9 @@
 # 회귀 시험 결과
 
-- 실행: 2026-11-18T23:17Z
+- 실행: 2026-11-18T23:31Z
 - 엔진: Suricata version 7.0.17, Snort++ 3.10.0.0
 
-**suricata**: 공격형 32/32 탐지(알려진 공백 0) · 정상 340/340 조용(오탐 0)
+**suricata**: 공격형 33/33 탐지(알려진 공백 0) · 정상 340/340 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -62,6 +62,8 @@
 | G-spray-32 | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py 힙 분사 Basic A*32(정상 틀, 트리거 아님) |
 | G-spel-junk | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정) |
 | S-N19 | synthetic | False | - | 정상 JWT 세 조각(서명 URL-safe) |
+| S-basic-nested | poc-shape | None | - | sam00/Java4Shell-CVE-2026-114938-PoC payloads.py Basic password_literal: Base64('warmup:'+A*64+'=') — 바깥 값은 정상 Base64(이중 인코딩). 앱이 비밀번호를 다시 디코딩할 때만 트리거(범위 밖) |
+| S-json-token | poc-shape | True | 탐지 9114941 | sam00/Java4Shell-CVE-2026-114938-PoC payloads.py JSON token·password 필드에 A*64+'=' 리터럴 |
 | H-cookie-jsess | real-headers | False | - | 현실 정상 헤더 H-cookie-jsess |
 | H-cookie-b64 | real-headers | False | - | 현실 정상 헤더 H-cookie-b64 |
 | H-cookie-b64pad | real-headers | False | - | 현실 정상 헤더 H-cookie-b64pad |
@@ -86,7 +88,7 @@
 | H-att-kv | real-headers | True | 탐지 9114942 | 사용자 정의 헤더 안 key=트리거 |
 | H-att-token-url | real-headers | True | 탐지 9114942 | X-Token URL-safe 값+'XY=' |
 
-**snort**: 공격형 32/32 탐지(알려진 공백 0) · 정상 340/340 조용(오탐 0)
+**snort**: 공격형 33/33 탐지(알려진 공백 0) · 정상 340/340 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -145,6 +147,8 @@
 | G-spray-32 | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py 힙 분사 Basic A*32(정상 틀, 트리거 아님) |
 | G-spel-junk | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정) |
 | S-N19 | synthetic | False | - | 정상 JWT 세 조각(서명 URL-safe) |
+| S-basic-nested | poc-shape | None | - | sam00/Java4Shell-CVE-2026-114938-PoC payloads.py Basic password_literal: Base64('warmup:'+A*64+'=') — 바깥 값은 정상 Base64(이중 인코딩). 앱이 비밀번호를 다시 디코딩할 때만 트리거(범위 밖) |
+| S-json-token | poc-shape | True | 탐지 9114941 | sam00/Java4Shell-CVE-2026-114938-PoC payloads.py JSON token·password 필드에 A*64+'=' 리터럴 |
 | H-cookie-jsess | real-headers | False | - | 현실 정상 헤더 H-cookie-jsess |
 | H-cookie-b64 | real-headers | False | - | 현실 정상 헤더 H-cookie-b64 |
 | H-cookie-b64pad | real-headers | False | - | 현실 정상 헤더 H-cookie-b64pad |

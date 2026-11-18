@@ -120,6 +120,11 @@ CASES.append(("G-spray-32", "poc-shape", None, f"{SRC_G} exploit.py 힙 분사 B
 CASES.append(("G-spel-junk", "poc-shape", None, f"{SRC_G} exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정)",
               req("GET", "/", [("Authorization", "Basic dXNlcjoke{T(x)}" + A * 32 + "=")])))
 CASES.append(("S-N19", "synthetic", False, "정상 JWT 세 조각(서명 URL-safe)", auth("Bearer " + JWT)))
+SRC_S = "sam00/Java4Shell-CVE-2026-114938-PoC"
+CASES.append(("S-basic-nested", "poc-shape", None, f"{SRC_S} payloads.py Basic password_literal: Base64('warmup:'+A*64+'=') — 바깥 값은 정상 Base64(이중 인코딩). 앱이 비밀번호를 다시 디코딩할 때만 트리거(범위 밖)",
+              auth("Basic " + base64.b64encode(("warmup:" + A * 64 + "=").encode()).decode())))
+CASES.append(("S-json-token", "poc-shape", True, f"{SRC_S} payloads.py JSON token·password 필드에 A*64+'=' 리터럴",
+              req("POST", "/api/login", [("Content-Type", "application/json")], json.dumps({"token": A * 64 + "=", "password": A * 64 + "="}))))
 
 # --- 헤더 전역·쿠키 룰용: 현실적인 정상 헤더와 헤더형 공격 ---
 REAL = [
