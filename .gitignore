@@ -1,3 +1,30 @@
+# Python
 __pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 시험 산출물(시험은 임시 폴더에서 돌고 결과는 RESULTS.md만 커밋한다)
 *.pcap
-RESULTS-ci.md
+*.pcapng
+eve.json
+alert_json*.txt
+fast.log
+stats.log
+*.log
+RESULTS-*.md
+out/
+
+# 비밀·로컬 설정
+.env
+.env.*
+*.key
+*.pem
+
+# OS·편집기
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/

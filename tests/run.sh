@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 룰 회귀 시험: 합성 pcap 생성 → Suricata·Snort 3 문법 검사와 pcap 실행(컨테이너, --network none) → 채점.
-# 볼륨 마운트 대신 docker cp를 써서 colima·원격 Docker에서도 같은 방식으로 돈다.
+# 볼륨 마운트 대신 docker cp를 써서, 호스트 폴더 공유가 제한된 Docker 환경에서도 같은 방식으로 돈다.
 # 사용: bash tests/run.sh [결과.md]
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
