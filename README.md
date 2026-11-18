@@ -18,14 +18,17 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 | 파일 | 엔진 | sid |
 |---|---|---|
-| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(헤더 Basic), 9114939(헤더 Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT) |
-| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(헤더 Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT) |
+| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Authorization Basic), 9114939(Authorization Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT) |
+| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(Authorization Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT) |
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
 
 - 9114938·9114939: Authorization 헤더(Basic·Bearer). JWT처럼 점(.)으로 나뉜 토큰은 각 조각을 따로 본다.
 - 9114940: URL 쿼리 파라미터 값(인코딩 전 원문을 본다).
 - 9114941(HUNT): 요청 본문(텍스트·폼·JSON). 정상 데이터에서 오탐이 날 여지가 가장 커서 사냥용으로 이름을 붙였다. 탐지 모드에서 먼저 돌려 본다.
+- 9114942(HUNT): Authorization과 표준 헤더(Host, User-Agent, Accept 계열, Content-Type, Referer, Origin, Sec-Fetch·Sec-Ch 계열 등)를 뺀 나머지 요청 헤더(예: X-Auth-Token, X-Api-Key). 직접 만든 인증 헤더로 Base64를 받는 애플리케이션을 겨냥한다.
+- 9114943(HUNT): Cookie 값.
+- 러프하게 "Base64처럼 생긴 값이 있으면 모두 탐지"하는 방식은 시험에서 정상 요청의 92%에 경보가 나 쓰지 않는다. 인증, 웹소켓 키, HTTP 서명, Digest, CSRF 토큰, 요청·추적 ID가 모두 Base64 문자로만 이루어져 있어 디코딩 없이는 구분할 수 없다. 그래서 모든 룰이 트리거의 핵심 특징(32자 이상 + 정상 패딩이 아닌 '=' 꼬리)만 본다.
 
 공격 **시도**를 잡을 뿐 성공 여부는 알려 주지 않는다. sid는 지역 룰 범위로 임의로 붙인 값이니 환경에 맞게 바꾼다.
 
@@ -33,7 +36,7 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 [`tests/known_gaps.json`](tests/known_gaps.json)에 있는 케이스는 현재 판이 놓친다.
 
-- Cookie·사용자 정의 헤더(예: X-Auth-Token)로 들어오는 Base64, 32자 미만 값.
+- 32자 미만 값. 표준 헤더로 분류해 뺀 헤더(Referer, Origin 등) 안의 값.
 - multipart 업로드 안의 파일 내용, 압축(gzip 등)된 요청 본문, 엔진의 본문 검사 한도를 넘는 큰 본문.
 - 암호화된 HTTPS: TLS를 복호화하는 프록시·WAF·IDS 뒤에 둬야 보인다.
 - 네트워크 룰로 못 보는 경로는 JVM 쪽에서 메운다: `java.util.Base64$Decoder`의 IllegalArgumentException 폭증, `hs_err_pid*.log` 크래시 파일, 원인 모를 재시작.

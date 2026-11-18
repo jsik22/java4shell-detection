@@ -89,8 +89,8 @@ CASES = [
     ("S-N18", "synthetic", False, "JSON에 JWT·UUID", req("POST", "/api/refresh", [("Content-Type", "application/json")], json.dumps({"token": JWT, "id": "00000000-0000-4000-8000-0000000a4b2f"}))),
     # --- 합성: 범위 밖·참고(현재 판이 못 잡아도 실패로 보지 않음) ---
     ("S-G01", "synthetic", None, "짧은 꼬리 A*28+'=' (8그룹 미만)", auth("Basic " + A * 28 + "=")),
-    ("S-G02", "synthetic", None, "Cookie 헤더의 트리거", req("GET", "/", [("Cookie", "session=" + A * 64 + "=")])),
-    ("S-G03", "synthetic", None, "사용자 정의 헤더의 트리거", req("GET", "/", [("X-Auth-Token", A * 64 + "=")])),
+    ("S-G02", "synthetic", True, "Cookie 헤더의 트리거", req("GET", "/", [("Cookie", "session=" + A * 64 + "=")])),
+    ("S-G03", "synthetic", True, "사용자 정의 헤더의 트리거", req("GET", "/", [("X-Auth-Token", A * 64 + "=")])),
 ]
 
 # --- 공개 PoC 요청 모양(소스에서 옮김, 실행하지 않음) ---
@@ -120,6 +120,30 @@ CASES.append(("G-spray-32", "poc-shape", None, f"{SRC_G} exploit.py 힙 분사 B
 CASES.append(("G-spel-junk", "poc-shape", None, f"{SRC_G} exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정)",
               req("GET", "/", [("Authorization", "Basic dXNlcjoke{T(x)}" + A * 32 + "=")])))
 CASES.append(("S-N19", "synthetic", False, "정상 JWT 세 조각(서명 URL-safe)", auth("Bearer " + JWT)))
+
+# --- 헤더 전역·쿠키 룰용: 현실적인 정상 헤더와 헤더형 공격 ---
+REAL = [
+    ("H-cookie-jsess", [("Cookie", "JSESSIONID=" + rnd(32, "0123456789ABCDEF") + "; lang=ko")]),
+    ("H-cookie-b64", [("Cookie", "session=" + base64.b64encode(bytes(range(48))).decode() + "; theme=dark")]),
+    ("H-cookie-b64pad", [("Cookie", "state=" + base64.b64encode(bytes(range(50))).decode() + "; a=1")]),
+    ("H-cookie-uuid", [("Cookie", "00000000-0000-4000-8000-0000000a4b2f=11111111-2222-4333-8444-555555555555; SESSIONID=" + rnd(32, "0123456789ABCDEF"))]),
+    ("H-cookie-jwt", [("Cookie", "id_token=" + JWT)]),
+    ("H-ws-key", [("Upgrade", "websocket"), ("Connection", "Upgrade"), ("Sec-WebSocket-Key", base64.b64encode(bytes(range(16))).decode()), ("Sec-WebSocket-Version", "13")]),
+    ("H-req-id", [("X-Request-ID", "7f1c2a4e-9b3d-4e8a-a1f0-3c5d6e7f8a9b")]),
+    ("H-traceparent", [("traceparent", "00-" + rnd(32, "0123456789abcdef") + "-" + rnd(16, "0123456789abcdef") + "-01")]),
+    ("H-etag", [("If-None-Match", 'W/"' + rnd(40, "0123456789abcdef") + '"')]),
+    ("H-csrf", [("X-CSRF-Token", rnd(43, B64[:62] + "-_"))]),
+    ("H-sig", [("Signature", "sig1=:" + base64.b64encode(bytes(range(64))).decode() + ":"), ("Signature-Input", 'sig1=("@authority");created=1700000000;keyid="' + rnd(43, B64[:62] + "-_") + '";tag="web-bot-auth"')]),
+    ("H-digest", [("Digest", "sha-256=" + base64.b64encode(bytes(range(32))).decode())]),
+    ("H-amz", [("X-Amz-Security-Token", base64.b64encode(bytes(range(200))).decode())]),
+    ("H-apikey", [("X-Api-Key", base64.b64encode(bytes(range(33))).decode())]),
+]
+for cid, hs in REAL:
+    CASES.append((cid, "real-headers", False, "현실 정상 헤더 " + cid, req("GET", "/", hs)))
+CASES.append(("H-att-cookie", "real-headers", True, "Cookie 값의 트리거(다른 쿠키 뒤)", req("GET", "/", [("Cookie", "lang=ko; session=" + A * 64 + "=; theme=dark")])))
+CASES.append(("H-att-api", "real-headers", True, "X-Api-Key 트리거 A*128+'='", req("GET", "/", [("X-Api-Key", A * 128 + "=")])))
+CASES.append(("H-att-kv", "real-headers", True, "사용자 정의 헤더 안 key=트리거", req("GET", "/", [("X-Session", "v=1; data=" + A * 64 + "=")])))
+CASES.append(("H-att-token-url", "real-headers", True, "X-Token URL-safe 값+'XY='", req("GET", "/", [("X-Token", rnd(64, B64[:62] + "-_") + "Ab=")])))
 
 # --- 정상 대량(오탐 측정) ---
 for i in range(300):

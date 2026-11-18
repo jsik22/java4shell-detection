@@ -1,9 +1,9 @@
 # 회귀 시험 결과
 
-- 실행: 2026-11-18T01:34Z
+- 실행: 2026-11-18T01:43Z
 - 엔진: Suricata version 7.0.17, Snort++ 3.10.0.0
 
-**suricata**: 공격형 25/25 탐지(알려진 공백 0) · 정상 322/322 조용(오탐 0)
+**suricata**: 공격형 31/31 탐지(알려진 공백 0) · 정상 336/336 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -43,8 +43,8 @@
 | S-N17 | synthetic | False | - | ViewState 폼(정상 패딩 1개) |
 | S-N18 | synthetic | False | - | JSON에 JWT·UUID |
 | S-G01 | synthetic | None | - | 짧은 꼬리 A*28+'=' (8그룹 미만) |
-| S-G02 | synthetic | None | - | Cookie 헤더의 트리거 |
-| S-G03 | synthetic | None | - | 사용자 정의 헤더의 트리거 |
+| S-G02 | synthetic | True | 탐지 9114943 | Cookie 헤더의 트리거 |
+| S-G03 | synthetic | True | 탐지 9114942 | 사용자 정의 헤더의 트리거 |
 | R-auth-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack auth control |
 | R-query-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack query control |
 | R-body-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack form body control |
@@ -62,8 +62,26 @@
 | G-spray-32 | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py 힙 분사 Basic A*32(정상 틀, 트리거 아님) |
 | G-spel-junk | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정) |
 | S-N19 | synthetic | False | - | 정상 JWT 세 조각(서명 URL-safe) |
+| H-cookie-jsess | real-headers | False | - | 현실 정상 헤더 H-cookie-jsess |
+| H-cookie-b64 | real-headers | False | - | 현실 정상 헤더 H-cookie-b64 |
+| H-cookie-b64pad | real-headers | False | - | 현실 정상 헤더 H-cookie-b64pad |
+| H-cookie-uuid | real-headers | False | - | 현실 정상 헤더 H-cookie-uuid |
+| H-cookie-jwt | real-headers | False | - | 현실 정상 헤더 H-cookie-jwt |
+| H-ws-key | real-headers | False | - | 현실 정상 헤더 H-ws-key |
+| H-req-id | real-headers | False | - | 현실 정상 헤더 H-req-id |
+| H-traceparent | real-headers | False | - | 현실 정상 헤더 H-traceparent |
+| H-etag | real-headers | False | - | 현실 정상 헤더 H-etag |
+| H-csrf | real-headers | False | - | 현실 정상 헤더 H-csrf |
+| H-sig | real-headers | False | - | 현실 정상 헤더 H-sig |
+| H-digest | real-headers | False | - | 현실 정상 헤더 H-digest |
+| H-amz | real-headers | False | - | 현실 정상 헤더 H-amz |
+| H-apikey | real-headers | False | - | 현실 정상 헤더 H-apikey |
+| H-att-cookie | real-headers | True | 탐지 9114943 | Cookie 값의 트리거(다른 쿠키 뒤) |
+| H-att-api | real-headers | True | 탐지 9114942 | X-Api-Key 트리거 A*128+'=' |
+| H-att-kv | real-headers | True | 탐지 9114942 | 사용자 정의 헤더 안 key=트리거 |
+| H-att-token-url | real-headers | True | 탐지 9114942 | X-Token URL-safe 값+'XY=' |
 
-**snort**: 공격형 25/25 탐지(알려진 공백 0) · 정상 322/322 조용(오탐 0)
+**snort**: 공격형 31/31 탐지(알려진 공백 0) · 정상 336/336 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -103,8 +121,8 @@
 | S-N17 | synthetic | False | - | ViewState 폼(정상 패딩 1개) |
 | S-N18 | synthetic | False | - | JSON에 JWT·UUID |
 | S-G01 | synthetic | None | - | 짧은 꼬리 A*28+'=' (8그룹 미만) |
-| S-G02 | synthetic | None | - | Cookie 헤더의 트리거 |
-| S-G03 | synthetic | None | - | 사용자 정의 헤더의 트리거 |
+| S-G02 | synthetic | True | 탐지 9114943 | Cookie 헤더의 트리거 |
+| S-G03 | synthetic | True | 탐지 9114942 | 사용자 정의 헤더의 트리거 |
 | R-auth-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack auth control |
 | R-query-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack query control |
 | R-body-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack form body control |
@@ -122,4 +140,22 @@
 | G-spray-32 | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py 힙 분사 Basic A*32(정상 틀, 트리거 아님) |
 | G-spel-junk | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정) |
 | S-N19 | synthetic | False | - | 정상 JWT 세 조각(서명 URL-safe) |
+| H-cookie-jsess | real-headers | False | - | 현실 정상 헤더 H-cookie-jsess |
+| H-cookie-b64 | real-headers | False | - | 현실 정상 헤더 H-cookie-b64 |
+| H-cookie-b64pad | real-headers | False | - | 현실 정상 헤더 H-cookie-b64pad |
+| H-cookie-uuid | real-headers | False | - | 현실 정상 헤더 H-cookie-uuid |
+| H-cookie-jwt | real-headers | False | - | 현실 정상 헤더 H-cookie-jwt |
+| H-ws-key | real-headers | False | - | 현실 정상 헤더 H-ws-key |
+| H-req-id | real-headers | False | - | 현실 정상 헤더 H-req-id |
+| H-traceparent | real-headers | False | - | 현실 정상 헤더 H-traceparent |
+| H-etag | real-headers | False | - | 현실 정상 헤더 H-etag |
+| H-csrf | real-headers | False | - | 현실 정상 헤더 H-csrf |
+| H-sig | real-headers | False | - | 현실 정상 헤더 H-sig |
+| H-digest | real-headers | False | - | 현실 정상 헤더 H-digest |
+| H-amz | real-headers | False | - | 현실 정상 헤더 H-amz |
+| H-apikey | real-headers | False | - | 현실 정상 헤더 H-apikey |
+| H-att-cookie | real-headers | True | 탐지 9114943 | Cookie 값의 트리거(다른 쿠키 뒤) |
+| H-att-api | real-headers | True | 탐지 9114942 | X-Api-Key 트리거 A*128+'=' |
+| H-att-kv | real-headers | True | 탐지 9114942 | 사용자 정의 헤더 안 key=트리거 |
+| H-att-token-url | real-headers | True | 탐지 9114942 | X-Token URL-safe 값+'XY=' |
 
