@@ -140,6 +140,16 @@ REAL = [
 ]
 for cid, hs in REAL:
     CASES.append((cid, "real-headers", False, "현실 정상 헤더 " + cid, req("GET", "/", hs)))
+CASES.append(("H-cookie-emptyname", "real-headers", False, "이름이 긴 빈 값 쿠키(팝업 닫기 등, 이름=UUID 포함)",
+              req("GET", "/", [("Cookie", "lang=ko; refreshToken=" + JWT + "; popup_today_close_00000000-0000-4000-8000-000000000000=")])))
+CASES.append(("H-cookie-emptyname-mid", "real-headers", False, "이름이 긴 빈 값 쿠키가 중간",
+              req("GET", "/", [("Cookie", "popup_today_close_00000000-0000-4000-8000-000000000000=; lang=ko")])))
+CASES.append(("S-N20", "synthetic", False, "폼 본문 끝의 이름이 긴 빈 값 필드",
+              req("POST", "/f", [("Content-Type", "application/x-www-form-urlencoded")], "a=1&popup_today_close_00000000-0000-4000-8000-000000000000=")))
+CASES.append(("H-kv-emptyname", "real-headers", False, "사용자 정의 헤더 안 key=value 목록 끝의 이름이 긴 빈 값",
+              req("GET", "/", [("X-Prefs", "theme=dark; popup_today_close_00000000-0000-4000-8000-000000000000=")])))
+CASES.append(("H-att-scheme", "real-headers", True, "사용자 정의 헤더 '스킴 값' 형태의 트리거",
+              req("GET", "/", [("X-Auth", "Token " + A * 64 + "=")])))
 CASES.append(("H-att-cookie", "real-headers", True, "Cookie 값의 트리거(다른 쿠키 뒤)", req("GET", "/", [("Cookie", "lang=ko; session=" + A * 64 + "=; theme=dark")])))
 CASES.append(("H-att-api", "real-headers", True, "X-Api-Key 트리거 A*128+'='", req("GET", "/", [("X-Api-Key", A * 128 + "=")])))
 CASES.append(("H-att-kv", "real-headers", True, "사용자 정의 헤더 안 key=트리거", req("GET", "/", [("X-Session", "v=1; data=" + A * 64 + "=")])))

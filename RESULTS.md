@@ -1,9 +1,9 @@
 # 회귀 시험 결과
 
-- 실행: 2026-11-18T01:43Z
+- 실행: 2026-11-18T06:35Z
 - 엔진: Suricata version 7.0.17, Snort++ 3.10.0.0
 
-**suricata**: 공격형 31/31 탐지(알려진 공백 0) · 정상 336/336 조용(오탐 0)
+**suricata**: 공격형 32/32 탐지(알려진 공백 0) · 정상 340/340 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -76,12 +76,17 @@
 | H-digest | real-headers | False | - | 현실 정상 헤더 H-digest |
 | H-amz | real-headers | False | - | 현실 정상 헤더 H-amz |
 | H-apikey | real-headers | False | - | 현실 정상 헤더 H-apikey |
+| H-cookie-emptyname | real-headers | False | - | 이름이 긴 빈 값 쿠키(팝업 닫기 등, 이름=UUID 포함) |
+| H-cookie-emptyname-mid | real-headers | False | - | 이름이 긴 빈 값 쿠키가 중간 |
+| S-N20 | synthetic | False | - | 폼 본문 끝의 이름이 긴 빈 값 필드 |
+| H-kv-emptyname | real-headers | False | - | 사용자 정의 헤더 안 key=value 목록 끝의 이름이 긴 빈 값 |
+| H-att-scheme | real-headers | True | 탐지 9114942 | 사용자 정의 헤더 '스킴 값' 형태의 트리거 |
 | H-att-cookie | real-headers | True | 탐지 9114943 | Cookie 값의 트리거(다른 쿠키 뒤) |
 | H-att-api | real-headers | True | 탐지 9114942 | X-Api-Key 트리거 A*128+'=' |
 | H-att-kv | real-headers | True | 탐지 9114942 | 사용자 정의 헤더 안 key=트리거 |
 | H-att-token-url | real-headers | True | 탐지 9114942 | X-Token URL-safe 값+'XY=' |
 
-**snort**: 공격형 31/31 탐지(알려진 공백 0) · 정상 336/336 조용(오탐 0)
+**snort**: 공격형 32/32 탐지(알려진 공백 0) · 정상 340/340 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -154,6 +159,11 @@
 | H-digest | real-headers | False | - | 현실 정상 헤더 H-digest |
 | H-amz | real-headers | False | - | 현실 정상 헤더 H-amz |
 | H-apikey | real-headers | False | - | 현실 정상 헤더 H-apikey |
+| H-cookie-emptyname | real-headers | False | - | 이름이 긴 빈 값 쿠키(팝업 닫기 등, 이름=UUID 포함) |
+| H-cookie-emptyname-mid | real-headers | False | - | 이름이 긴 빈 값 쿠키가 중간 |
+| S-N20 | synthetic | False | - | 폼 본문 끝의 이름이 긴 빈 값 필드 |
+| H-kv-emptyname | real-headers | False | - | 사용자 정의 헤더 안 key=value 목록 끝의 이름이 긴 빈 값 |
+| H-att-scheme | real-headers | True | 탐지 9114942 | 사용자 정의 헤더 '스킴 값' 형태의 트리거 |
 | H-att-cookie | real-headers | True | 탐지 9114943 | Cookie 값의 트리거(다른 쿠키 뒤) |
 | H-att-api | real-headers | True | 탐지 9114942 | X-Api-Key 트리거 A*128+'=' |
 | H-att-kv | real-headers | True | 탐지 9114942 | 사용자 정의 헤더 안 key=트리거 |
