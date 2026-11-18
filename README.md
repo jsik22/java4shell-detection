@@ -23,7 +23,7 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
 
-- 9114938·9114939: Authorization 헤더(Basic·Bearer).
+- 9114938·9114939: Authorization 헤더(Basic·Bearer). JWT처럼 점(.)으로 나뉜 토큰은 각 조각을 따로 본다.
 - 9114940: URL 쿼리 파라미터 값(인코딩 전 원문을 본다).
 - 9114941(HUNT): 요청 본문(텍스트·폼·JSON). 정상 데이터에서 오탐이 날 여지가 가장 커서 사냥용으로 이름을 붙였다. 탐지 모드에서 먼저 돌려 본다.
 

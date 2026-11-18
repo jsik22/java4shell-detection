@@ -1,9 +1,9 @@
 # 회귀 시험 결과
 
-- 실행: 2026-11-18T01:16Z
+- 실행: 2026-11-18T01:34Z
 - 엔진: Suricata version 7.0.17, Snort++ 3.10.0.0
 
-**suricata**: 공격형 21/21 탐지(알려진 공백 0) · 정상 321/321 조용(오탐 0)
+**suricata**: 공격형 25/25 탐지(알려진 공백 0) · 정상 322/322 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -55,8 +55,15 @@
 | R-query-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack query badtail |
 | R-body-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack form body badtail |
 | P-text-body | poc-shape | True | 탐지 9114941 | Pwned-test/cve-2026-114938-java17-PoC POST text/plain A*128+'=' |
+| G-auth-35 | poc-shape | True | 탐지 9114938 | Ghost-Bx1/java-exploits poc.py Basic A*34+'=' (35자) |
+| G-auth-49 | poc-shape | True | 탐지 9114938 | Ghost-Bx1/java-exploits poc.py Basic A*48+'=' (49자) |
+| G-bearer-jwt-seg | poc-shape | True | 탐지 9114938 | Ghost-Bx1/java-exploits poc.py Bearer 가짜 JWT 가운데 조각에 트리거 |
+| G-bearer-concat | poc-shape | True | 탐지 9114938 | Ghost-Bx1/java-exploits poc.py Bearer JWT 머리 뒤에 트리거를 이어 붙임 |
+| G-spray-32 | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py 힙 분사 Basic A*32(정상 틀, 트리거 아님) |
+| G-spel-junk | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정) |
+| S-N19 | synthetic | False | - | 정상 JWT 세 조각(서명 URL-safe) |
 
-**snort**: 공격형 21/21 탐지(알려진 공백 0) · 정상 321/321 조용(오탐 0)
+**snort**: 공격형 25/25 탐지(알려진 공백 0) · 정상 322/322 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -108,4 +115,11 @@
 | R-query-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack query badtail |
 | R-body-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack form body badtail |
 | P-text-body | poc-shape | True | 탐지 9114941 | Pwned-test/cve-2026-114938-java17-PoC POST text/plain A*128+'=' |
+| G-auth-35 | poc-shape | True | 탐지 9114938 | Ghost-Bx1/java-exploits poc.py Basic A*34+'=' (35자) |
+| G-auth-49 | poc-shape | True | 탐지 9114938 | Ghost-Bx1/java-exploits poc.py Basic A*48+'=' (49자) |
+| G-bearer-jwt-seg | poc-shape | True | 탐지 9114939 | Ghost-Bx1/java-exploits poc.py Bearer 가짜 JWT 가운데 조각에 트리거 |
+| G-bearer-concat | poc-shape | True | 탐지 9114939 | Ghost-Bx1/java-exploits poc.py Bearer JWT 머리 뒤에 트리거를 이어 붙임 |
+| G-spray-32 | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py 힙 분사 Basic A*32(정상 틀, 트리거 아님) |
+| G-spel-junk | poc-shape | None | - | Ghost-Bx1/java-exploits exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정) |
+| S-N19 | synthetic | False | - | 정상 JWT 세 조각(서명 URL-safe) |
 

@@ -108,6 +108,19 @@ for label, val, expect in [("control", CTRL, False), ("padded", SLASH130, True),
 CASES.append(("P-text-body", "poc-shape", True, "Pwned-test/cve-2026-114938-java17-PoC POST text/plain A*128+'='",
               req("POST", "/probe", [("Content-Type", "text/plain")], A * 128 + "=")))
 
+# Ghost-Bx1/java-exploits cve-2026-114938/poc.py·exploit.py(2026-11-18, '공격 도구'를 자처, 실제 동작 미확인)에서 요청 모양만 옮김
+SRC_G = "Ghost-Bx1/java-exploits"
+CASES.append(("G-auth-35", "poc-shape", True, f"{SRC_G} poc.py Basic A*34+'=' (35자)", req("GET", "/", [("Authorization", "Basic " + A * 34 + "=")])))
+CASES.append(("G-auth-49", "poc-shape", True, f"{SRC_G} poc.py Basic A*48+'=' (49자)", req("GET", "/", [("Authorization", "Basic " + A * 48 + "=")])))
+CASES.append(("G-bearer-jwt-seg", "poc-shape", True, f"{SRC_G} poc.py Bearer 가짜 JWT 가운데 조각에 트리거",
+              req("GET", "/api/v1/", [("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9." + A * 32 + "=.fakesig")])))
+CASES.append(("G-bearer-concat", "poc-shape", True, f"{SRC_G} poc.py Bearer JWT 머리 뒤에 트리거를 이어 붙임",
+              req("GET", "/api/", [("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" + A * 34 + "=")])))
+CASES.append(("G-spray-32", "poc-shape", None, f"{SRC_G} exploit.py 힙 분사 Basic A*32(정상 틀, 트리거 아님)", req("GET", "/", [("Authorization", "Basic " + A * 32)])))
+CASES.append(("G-spel-junk", "poc-shape", None, f"{SRC_G} exploit.py Basic 값 앞에 Base64 아닌 문자열 + 트리거(디코더가 앞에서 멈춰 트리거 불성립 추정)",
+              req("GET", "/", [("Authorization", "Basic dXNlcjoke{T(x)}" + A * 32 + "=")])))
+CASES.append(("S-N19", "synthetic", False, "정상 JWT 세 조각(서명 URL-safe)", auth("Bearer " + JWT)))
+
 # --- 정상 대량(오탐 측정) ---
 for i in range(300):
     raw = bytes(random.getrandbits(8) for _ in range(random.randint(8, 180)))
