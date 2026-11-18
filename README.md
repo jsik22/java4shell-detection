@@ -55,6 +55,21 @@ bash tests/run.sh RESULTS.md
 - 통과 기준: 공격형 케이스를 모두 잡고(알려진 공백 제외) 정상 케이스 오탐 0. 알려진 공백을 새로 잡으면 종료 코드 2로 알린다.
 - 최근 결과: [`RESULTS.md`](RESULTS.md). GitHub Actions가 push마다 같은 시험을 돈다.
 
+## 공식 룰과 비교
+
+Emerging Threats Open에 2026-11-18자로 Java4Shell 룰 6개(sid 2072829~2072834)가 올라왔다. 같은 시험 pcap을 Suricata 7.0에 돌려 비교했다(2026-11-19, 주소 변수만 `any`로 바꿈. 공식 룰 원문은 이 저장소에 넣지 않는다). Talos(Snort) 공식 룰은 아직 없다.
+
+| 룰 묶음 | 공격형 32건 | 정상 340건 오탐 |
+|---|---|---|
+| 이 저장소 v0.6.x(Suricata) | 32 | 0 |
+| ET 기본 활성 3개(PoC User-Agent, `A`×64+`=`, `A`×128+`=`) | 16 | 0 |
+| ET 6개 전부(주석 처리된 HUNTING 3개 포함) | 22 | 56 |
+
+- ET 기본 활성 룰은 공개 PoC의 고정 문자열(`A` 반복 뒤 `=`)을 찾는다. 다른 글자로 된 값, `B=`·`BC=`처럼 꼬리 글자가 붙은 모양, URL 인코딩 `%3D`, 64자가 아닌 길이(32·35·49자), JWT 조각 안 트리거를 놓친다. 대신 오탐이 없다.
+- ET의 주석 처리된 HUNTING 3개(URI·헤더·본문)는 64자 이상 Base64 뒤 `=` 꼬리를 보지만 전체 길이를 4로 나눈 나머지를 따지지 않아, 정상 패딩(`...XYZ=`)이 붙은 헤더·본문에서도 울린다(위 56건, 대부분 정상 Basic·Bearer 헤더). ET도 이 룰을 기본으로 끄고 신뢰도 Low로 표시했다.
+- 이 시험 데이터는 이 저장소 룰을 만들며 함께 만든 것이라 이 저장소 쪽에 유리할 수 있다. 운영 트래픽 기준 비교는 아니다.
+- 두 묶음은 함께 쓸 수 있다. ET의 User-Agent 룰(공개 PoC 도구 이름)은 이 저장소에 없는 단서다.
+
 ## 보강 방식
 
 CyberTissue가 공개 PoC·보고서·공식 룰을 계속 모니터링한다. 새 요청 모양이 나오면 `poc-shape` 케이스로 옮기고, 룰을 고쳐 회귀 시험을 통과하면 반영하고 릴리스 태그를 붙인다. 바뀐 내용은 [CHANGELOG](CHANGELOG.md)와 CyberTissue 노트에 적는다.
@@ -67,6 +82,7 @@ CyberTissue가 공개 PoC·보고서·공식 룰을 계속 모니터링한다. �
 - Oracle, [Critical Security Patch Update Advisory - November 2026](https://www.oracle.com/security-alerts/cspunov2026.html)
 - OpenJDK, [Vulnerability Advisory 2026/11/17](https://openjdk.org/groups/vulnerability/advisories/2026-11-17)
 - Upwind, [Java4Shell: What We Know Now and What Comes Next](https://www.upwind.io/blog/java4shell-what-we-know-now-and-what-comes-next) (탐지 단서)
+- Proofpoint Emerging Threats, [ET Open 룰셋](https://rules.emergingthreats.net/open/) (sid 2072829~2072834, 2026-11-18)
 
 ## License
 
