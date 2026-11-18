@@ -1,0 +1,24 @@
+name: rule-regression
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull engines
+        run: |
+          docker pull -q jasonish/suricata:7.0
+          docker pull -q ciscotalos/snort3:latest
+      - name: Regression test (Suricata + Snort 3, synthetic pcap)
+        run: bash tests/run.sh RESULTS-ci.md
+      - name: Job summary
+        if: always()
+        run: test -f RESULTS-ci.md && cat RESULTS-ci.md >> "$GITHUB_STEP_SUMMARY" || true

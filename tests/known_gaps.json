@@ -1,0 +1,5 @@
+{
+  "_comment": "현재 룰 판이 못 잡는 것으로 알려진 공격형 케이스. 새 판이 잡으면 score.py가 종료 코드 2로 알리고, 여기서 지운다.",
+  "suricata": ["R-query-padded", "R-body-padded", "P-text-body"],
+  "snort": ["R-query-padded", "R-body-padded", "P-text-body"]
+}

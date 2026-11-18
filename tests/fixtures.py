@@ -1,0 +1,160 @@
+"""Java4Shell(CVE-2026-114938) 탐지 룰 회귀 시험용 합성 pcap 생성기. 파이썬 표준 라이브러리만 쓴다.
+
+- 케이스마다 TCP 세션 하나(handshake → HTTP 요청 → 200 응답 → FIN). 출발 포트로 케이스를 구분한다.
+- 주소는 문서용 대역(192.0.2.10 → 198.51.100.20:80)만 쓴다. 네트워크로 아무것도 보내지 않는다.
+- 공격형 값은 공개된 트리거 모양(Base64 뒤 비정상 '=' 꼬리)뿐이다. 익스플로잇 코드·페이로드는 없다.
+- poc-shape 케이스는 공개 PoC 저장소의 소스를 읽어 요청 모양만 옮긴 것이다(PoC는 실행하지 않는다).
+
+expect: True = 탐지해야 함, False = 탐지하면 안 됨(오탐 측정), None = 트리거 모양이 아니거나 범위 밖(참고용).
+
+사용: python3 tests/fixtures.py OUT.pcap OUT-index.json
+"""
+import base64
+import json
+import random
+import struct
+import sys
+from urllib.parse import quote
+
+random.seed(114938)
+B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+A = "A"
+
+
+def rnd(n, alpha=B64):
+    return "".join(random.choice(alpha) for _ in range(n))
+
+
+def b64url(b):
+    return base64.urlsafe_b64encode(b).rstrip(b"=").decode()
+
+
+def req(method, path, headers, body=""):
+    r = f"{method} {path} HTTP/1.1\r\nHost: app.example.test\r\nUser-Agent: fixtures/1.0\r\nAccept: */*\r\n"
+    for k, v in headers:
+        r += f"{k}: {v}\r\n"
+    if body:
+        r += f"Content-Length: {len(body.encode())}\r\n"
+    return (r + "\r\n" + body).encode()
+
+
+def auth(v, path="/api/v1/resource"):
+    return req("GET", path, [("Authorization", v)])
+
+
+JWT = ".".join([b64url(b'{"alg":"HS256","typ":"JWT"}'),
+                b64url(json.dumps({"sub": "user-1234", "name": "Test User", "iat": 1763424000}).encode()),
+                b64url(bytes(random.getrandbits(8) for _ in range(32)))])
+
+# (id, 묶음, expect, 설명, 요청 바이트)
+CASES = [
+    # --- 합성: 탐지해야 함(칼리프·업윈드가 밝힌 비정상 '=' 꼬리) ---
+    ("S-P01", "synthetic", True, "Basic A*64+'=' (칼리프 트리거)", auth("Basic " + A * 64 + "=")),
+    ("S-P02", "synthetic", True, "Basic A*128+'=' (구 17 트리거)", auth("Basic " + A * 128 + "=")),
+    ("S-P03", "synthetic", True, "Basic A*64+'B='", auth("Basic " + A * 64 + "B=")),
+    ("S-P04", "synthetic", True, "Basic A*64+'BC='", auth("Basic " + A * 64 + "BC=")),
+    ("S-P05", "synthetic", True, "Basic A*64+'B=='", auth("Basic " + A * 64 + "B==")),
+    ("S-P06", "synthetic", True, "Basic A*64+'=='", auth("Basic " + A * 64 + "==")),
+    ("S-P07", "synthetic", True, "Basic A*64+'==='", auth("Basic " + A * 64 + "===")),
+    ("S-P08", "synthetic", True, "Bearer A*64+'='", auth("Bearer " + A * 64 + "=")),
+    ("S-P09", "synthetic", True, "소문자 헤더명·스킴", req("GET", "/", [("authorization", "basic " + A * 64 + "=")])),
+    ("S-P10", "synthetic", True, "최소 길이 A*32+'='", auth("Basic " + A * 32 + "=")),
+    ("S-P11", "synthetic", True, "무작위 Base64 96자+'='", auth("Basic " + rnd(96) + "=")),
+    ("S-P12", "synthetic", True, "스킴 뒤 공백 두 칸", auth("Basic  " + A * 64 + "=")),
+    ("S-P13", "synthetic", True, "URL-safe 문자 섞인 Bearer+'='", auth("Bearer " + rnd(64, B64[:62] + "-_") + "-=")),
+    # --- 합성: 탐지하면 안 됨 ---
+    ("S-N01", "synthetic", False, "정상 패딩 'XY=='", auth("Basic " + A * 64 + "BC==")),
+    ("S-N02", "synthetic", False, "정상 패딩 'XYZ='", auth("Basic " + A * 64 + "BCD=")),
+    ("S-N03", "synthetic", False, "패딩 없음 A*64", auth("Basic " + A * 64)),
+    ("S-N04", "synthetic", False, "짧은 Basic 정상 계정", auth("Basic " + base64.b64encode(b"user:pass").decode())),
+    ("S-N05", "synthetic", False, "긴 Basic 정상 계정", auth("Basic " + base64.b64encode(b"service-account@example.test:Very-Long-Passw0rd-2026!!").decode())),
+    ("S-N06", "synthetic", False, "JWT Bearer", auth("Bearer " + JWT)),
+    ("S-N07", "synthetic", False, "불투명 Bearer 40자", auth("Bearer " + rnd(40, B64[:62]))),
+    ("S-N08", "synthetic", False, "Digest 인증", auth('Digest username="u", realm="r", nonce="' + rnd(48, B64[:62]) + '=", uri="/", response="' + rnd(32, "0123456789abcdef") + '"')),
+    ("S-N09", "synthetic", False, "정상 Base64 폼 본문", req("POST", "/upload", [("Content-Type", "application/x-www-form-urlencoded")], "f=" + quote(base64.b64encode(bytes(range(200))).decode(), safe=""))),
+    ("S-N10", "synthetic", False, "정상 Base64 JSON 본문", req("POST", "/api", [("Content-Type", "application/json")], json.dumps({"file": base64.b64encode(bytes(range(150))).decode()}))),
+    ("S-N11", "synthetic", False, "정상 Base64 쿼리", req("GET", "/d?b=" + quote(base64.b64encode(bytes(range(97))).decode(), safe=""), [])),
+    # --- 합성: 범위 밖·참고(현재 판이 못 잡아도 실패로 보지 않음) ---
+    ("S-G01", "synthetic", None, "짧은 꼬리 A*28+'=' (8그룹 미만)", auth("Basic " + A * 28 + "=")),
+    ("S-G02", "synthetic", None, "Cookie 헤더의 트리거", req("GET", "/", [("Cookie", "session=" + A * 64 + "=")])),
+    ("S-G03", "synthetic", None, "사용자 정의 헤더의 트리거", req("GET", "/", [("X-Auth-Token", A * 64 + "=")])),
+]
+
+# --- 공개 PoC 요청 모양(소스에서 옮김, 실행하지 않음) ---
+CTRL = base64.b64encode(b"probe").decode()
+SLASH130 = "/" * 128 + "=="       # 130자, %4=2
+SLASH128 = "/" * 126 + "=="       # 128자, %4=0(정상 틀) — 도구 주석과 달리 트리거 모양 아님
+for label, val, expect in [("control", CTRL, False), ("padded", SLASH130, True), ("badtail", SLASH128, None)]:
+    src = "r3dvei1/java4shell RemoteAttack"
+    CASES.append((f"R-auth-{label}", "poc-shape", expect, f"{src} auth {label}",
+                  req("GET", "/d", [("Authorization", "Basic " + val)])))
+    CASES.append((f"R-query-{label}", "poc-shape", expect, f"{src} query {label}",
+                  req("GET", "/d?b=" + quote(val, safe=""), [])))
+    CASES.append((f"R-body-{label}", "poc-shape", expect, f"{src} form body {label}",
+                  req("POST", "/d", [("Content-Type", "application/x-www-form-urlencoded")], "b=" + quote(val, safe=""))))
+CASES.append(("P-text-body", "poc-shape", True, "Pwned-test/cve-2026-114938-java17-PoC POST text/plain A*128+'='",
+              req("POST", "/probe", [("Content-Type", "text/plain")], A * 128 + "=")))
+
+# --- 정상 대량(오탐 측정) ---
+for i in range(300):
+    raw = bytes(random.getrandbits(8) for _ in range(random.randint(8, 180)))
+    val = ("Bearer " + b64url(raw)) if i % 3 == 0 else ("Basic " + base64.b64encode(raw).decode())
+    CASES.append((f"B{i:03d}", "benign-bulk", False, "정상 대량", auth(val)))
+
+
+def _csum(data):
+    if len(data) % 2:
+        data += b"\0"
+    s = sum(struct.unpack("!%dH" % (len(data) // 2), data))
+    while s >> 16:
+        s = (s & 0xFFFF) + (s >> 16)
+    return (~s) & 0xFFFF
+
+
+def _ip(ip):
+    return bytes(int(x) for x in ip.split("."))
+
+
+def _pkt(src, dst, sport, dport, seq, ack, flags, payload=b""):
+    tcp = struct.pack("!HHIIBBHHH", sport, dport, seq, ack, 5 << 4, flags, 65535, 0, 0)
+    pseudo = _ip(src) + _ip(dst) + struct.pack("!BBH", 0, 6, 20 + len(payload))
+    tcp = tcp[:16] + struct.pack("!H", _csum(pseudo + tcp + payload)) + tcp[18:]
+    iph = struct.pack("!BBHHHBBH4s4s", 0x45, 0, 40 + len(payload), random.getrandbits(16), 0x4000, 64, 6, 0, _ip(src), _ip(dst))
+    iph = iph[:10] + struct.pack("!H", _csum(iph)) + iph[12:]
+    return b"\x02\x00\x00\x00\x00\x02\x02\x00\x00\x00\x00\x01\x08\x00" + iph + tcp + payload
+
+
+def main(out_pcap, out_index):
+    cli, srv = "192.0.2.10", "198.51.100.20"
+    t = 1763424000.0
+    frames, index = [], {}
+    resp = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\n\r\nok"
+    for n, (cid, group, expect, desc, request) in enumerate(CASES):
+        sport = 20000 + n
+        index[sport] = {"id": cid, "group": group, "expect": expect, "desc": desc}
+        cs, ss, q = 1000, 5000, len(request)
+        for s in [
+            (cli, srv, sport, 80, cs, 0, 0x02, b""),
+            (srv, cli, 80, sport, ss, cs + 1, 0x12, b""),
+            (cli, srv, sport, 80, cs + 1, ss + 1, 0x10, b""),
+            (cli, srv, sport, 80, cs + 1, ss + 1, 0x18, request),
+            (srv, cli, 80, sport, ss + 1, cs + 1 + q, 0x10, b""),
+            (srv, cli, 80, sport, ss + 1, cs + 1 + q, 0x18, resp),
+            (cli, srv, sport, 80, cs + 1 + q, ss + 1 + len(resp), 0x10, b""),
+            (cli, srv, sport, 80, cs + 1 + q, ss + 1 + len(resp), 0x11, b""),
+            (srv, cli, 80, sport, ss + 1 + len(resp), cs + 2 + q, 0x11, b""),
+            (cli, srv, sport, 80, cs + 2 + q, ss + 2 + len(resp), 0x10, b""),
+        ]:
+            t += 0.001
+            frames.append((t, _pkt(*s)))
+    with open(out_pcap, "wb") as f:
+        f.write(struct.pack("<IHHiIII", 0xA1B2C3D4, 2, 4, 0, 0, 65535, 1))
+        for ts, fr in frames:
+            f.write(struct.pack("<IIII", int(ts), int((ts % 1) * 1e6), len(fr), len(fr)) + fr)
+    with open(out_index, "w", encoding="utf-8") as f:
+        json.dump(index, f, ensure_ascii=False, indent=1)
+    print(f"cases={len(CASES)} frames={len(frames)}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1], sys.argv[2])
