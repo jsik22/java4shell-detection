@@ -74,6 +74,19 @@ CASES = [
     ("S-N09", "synthetic", False, "정상 Base64 폼 본문", req("POST", "/upload", [("Content-Type", "application/x-www-form-urlencoded")], "f=" + quote(base64.b64encode(bytes(range(200))).decode(), safe=""))),
     ("S-N10", "synthetic", False, "정상 Base64 JSON 본문", req("POST", "/api", [("Content-Type", "application/json")], json.dumps({"file": base64.b64encode(bytes(range(150))).decode()}))),
     ("S-N11", "synthetic", False, "정상 Base64 쿼리", req("GET", "/d?b=" + quote(base64.b64encode(bytes(range(97))).decode(), safe=""), [])),
+    # --- 합성: 쿼리·본문 경로(공개 PoC가 쓰는 경로) ---
+    ("S-Q01", "synthetic", True, "쿼리 ?b=A*64+'=' (리터럴 '=')", req("GET", "/d?b=" + A * 64 + "=", [])),
+    ("S-Q02", "synthetic", True, "쿼리 ?x=1&b=A*64+'%3D' (인코딩)", req("GET", "/d?x=1&b=" + A * 64 + "%3D", [])),
+    ("S-J01", "synthetic", True, "JSON 본문 {\"file\": A*64+'='}", req("POST", "/api", [("Content-Type", "application/json")], json.dumps({"file": A * 64 + "="}))),
+    ("S-F01", "synthetic", True, "폼 본문 data=A*64+'%3D'&x=1", req("POST", "/f", [("Content-Type", "application/x-www-form-urlencoded")], "data=" + A * 64 + "%3D&x=1")),
+    # --- 합성: 쿼리·본문 정상(오탐 측정) ---
+    ("S-N12", "synthetic", False, "SAMLResponse 폼(정상 패딩, URL 인코딩)", req("POST", "/sso/acs", [("Content-Type", "application/x-www-form-urlencoded")], "SAMLResponse=" + quote(base64.b64encode(bytes(random.getrandbits(8) for _ in range(301))).decode(), safe="") + "&RelayState=%2Fhome")),
+    ("S-N13", "synthetic", False, "data URI 이미지 JSON(정상 패딩)", req("POST", "/api/avatar", [("Content-Type", "application/json")], json.dumps({"img": "data:image/png;base64," + base64.b64encode(bytes(random.getrandbits(8) for _ in range(500))).decode()}))),
+    ("S-N14", "synthetic", False, "로그인 폼(짧은 값)", req("POST", "/login", [("Content-Type", "application/x-www-form-urlencoded")], "username=alice&password=S3cr3t%3D%3D&remember=1")),
+    ("S-N15", "synthetic", False, "서명 쿼리(16진수, '=' 꼬리 없음)", req("GET", "/file?X-Amz-Signature=" + rnd(64, "0123456789abcdef") + "&X-Amz-Expires=300", [])),
+    ("S-N16", "synthetic", False, "긴 경로·쿼리(Base64 아님)", req("GET", "/static/js/app.min.js?v=" + rnd(40, "0123456789abcdef") + "&lang=ko", [])),
+    ("S-N17", "synthetic", False, "ViewState 폼(정상 패딩 1개)", req("POST", "/page.aspx", [("Content-Type", "application/x-www-form-urlencoded")], "__VIEWSTATE=" + quote(base64.b64encode(bytes(random.getrandbits(8) for _ in range(149))).decode(), safe="") + "&btn=OK")),
+    ("S-N18", "synthetic", False, "JSON에 JWT·UUID", req("POST", "/api/refresh", [("Content-Type", "application/json")], json.dumps({"token": JWT, "id": "00000000-0000-4000-8000-0000000a4b2f"}))),
     # --- 합성: 범위 밖·참고(현재 판이 못 잡아도 실패로 보지 않음) ---
     ("S-G01", "synthetic", None, "짧은 꼬리 A*28+'=' (8그룹 미만)", auth("Basic " + A * 28 + "=")),
     ("S-G02", "synthetic", None, "Cookie 헤더의 트리거", req("GET", "/", [("Cookie", "session=" + A * 64 + "=")])),

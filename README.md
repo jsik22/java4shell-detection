@@ -18,17 +18,23 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 | 파일 | 엔진 | sid |
 |---|---|---|
-| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Basic), 9114939(Bearer) |
-| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938 |
+| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(헤더 Basic), 9114939(헤더 Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT) |
+| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(헤더 Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT) |
 
-탐지 대상: Authorization 헤더(Basic·Bearer)에 32자 이상의 Base64 값이 있고, 끝이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)도 본다. 공격 **시도**를 잡을 뿐 성공 여부는 알려 주지 않는다. sid는 지역 룰 범위로 임의로 붙인 값이니 환경에 맞게 바꾼다.
+탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
+
+- 9114938·9114939: Authorization 헤더(Basic·Bearer).
+- 9114940: URL 쿼리 파라미터 값(인코딩 전 원문을 본다).
+- 9114941(HUNT): 요청 본문(텍스트·폼·JSON). 정상 데이터에서 오탐이 날 여지가 가장 커서 사냥용으로 이름을 붙였다. 탐지 모드에서 먼저 돌려 본다.
+
+공격 **시도**를 잡을 뿐 성공 여부는 알려 주지 않는다. sid는 지역 룰 범위로 임의로 붙인 값이니 환경에 맞게 바꾼다.
 
 ### 알려진 공백
 
 [`tests/known_gaps.json`](tests/known_gaps.json)에 있는 케이스는 현재 판이 놓친다.
 
-- URL 쿼리(`?b=`, URL 인코딩)와 요청 본문(폼·텍스트·JSON·파일 업로드)으로 들어오는 Base64 — 공개 PoC가 실제로 쓰는 경로다. 다음 판에서 다룬다.
-- Cookie·사용자 정의 헤더, 32자 미만 값.
+- Cookie·사용자 정의 헤더(예: X-Auth-Token)로 들어오는 Base64, 32자 미만 값.
+- multipart 업로드 안의 파일 내용, 압축(gzip 등)된 요청 본문, 엔진의 본문 검사 한도를 넘는 큰 본문.
 - 암호화된 HTTPS: TLS를 복호화하는 프록시·WAF·IDS 뒤에 둬야 보인다.
 - 네트워크 룰로 못 보는 경로는 JVM 쪽에서 메운다: `java.util.Base64$Decoder`의 IllegalArgumentException 폭증, `hs_err_pid*.log` 크래시 파일, 원인 모를 재시작.
 

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.3.0 — 2026-11-18
+
+- 9114940(URL 쿼리)·9114941(요청 본문, HUNT) 추가. URL 인코딩(`%2B`, `%2F`, `%3D`)을 한 글자로 센다. Snort 3·Suricata 모두.
+- 시험 케이스 추가: 쿼리 리터럴·인코딩 꼬리, JSON·폼 본문 트리거, 정상 SAMLResponse·ViewState·data URI·로그인 폼·서명 쿼리·JWT JSON.
+- 결과: 두 엔진 모두 공격형 21건 전부 탐지(공개 PoC의 쿼리·폼 본문·텍스트 본문 경로 포함), 정상 321건 오탐 0. 알려진 공백 0건(범위 밖: Cookie·사용자 정의 헤더, 32자 미만).
+
 ## v0.2.0 — 2026-11-18
 
 - 첫 공개. CyberTissue 노트에 실었던 룰 2판(Snort 3: Basic·Bearer 분리 + fast_pattern, Suricata: Authorization 헤더 하나)을 옮겼다. URL-safe 문자(`-`, `_`)를 본다.

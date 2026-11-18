@@ -1,9 +1,9 @@
 # 회귀 시험 결과
 
-- 실행: 2026-11-18T01:00Z
+- 실행: 2026-11-18T01:02Z
 - 엔진: Suricata version 7.0.17, Snort++ 3.10.0.0
 
-**suricata**: 공격형 14/17 탐지(알려진 공백 3) · 정상 314/314 조용(오탐 0)
+**suricata**: 공격형 21/21 탐지(알려진 공백 0) · 정상 321/321 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -31,6 +31,17 @@
 | S-N09 | synthetic | False | - | 정상 Base64 폼 본문 |
 | S-N10 | synthetic | False | - | 정상 Base64 JSON 본문 |
 | S-N11 | synthetic | False | - | 정상 Base64 쿼리 |
+| S-Q01 | synthetic | True | 탐지 9114940 | 쿼리 ?b=A*64+'=' (리터럴 '=') |
+| S-Q02 | synthetic | True | 탐지 9114940 | 쿼리 ?x=1&b=A*64+'%3D' (인코딩) |
+| S-J01 | synthetic | True | 탐지 9114941 | JSON 본문 {"file": A*64+'='} |
+| S-F01 | synthetic | True | 탐지 9114941 | 폼 본문 data=A*64+'%3D'&x=1 |
+| S-N12 | synthetic | False | - | SAMLResponse 폼(정상 패딩, URL 인코딩) |
+| S-N13 | synthetic | False | - | data URI 이미지 JSON(정상 패딩) |
+| S-N14 | synthetic | False | - | 로그인 폼(짧은 값) |
+| S-N15 | synthetic | False | - | 서명 쿼리(16진수, '=' 꼬리 없음) |
+| S-N16 | synthetic | False | - | 긴 경로·쿼리(Base64 아님) |
+| S-N17 | synthetic | False | - | ViewState 폼(정상 패딩 1개) |
+| S-N18 | synthetic | False | - | JSON에 JWT·UUID |
 | S-G01 | synthetic | None | - | 짧은 꼬리 A*28+'=' (8그룹 미만) |
 | S-G02 | synthetic | None | - | Cookie 헤더의 트리거 |
 | S-G03 | synthetic | None | - | 사용자 정의 헤더의 트리거 |
@@ -38,14 +49,14 @@
 | R-query-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack query control |
 | R-body-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack form body control |
 | R-auth-padded | poc-shape | True | 탐지 9114938 | r3dvei1/java4shell RemoteAttack auth padded |
-| R-query-padded | poc-shape | True | 놓침(알려진 공백) | r3dvei1/java4shell RemoteAttack query padded |
-| R-body-padded | poc-shape | True | 놓침(알려진 공백) | r3dvei1/java4shell RemoteAttack form body padded |
+| R-query-padded | poc-shape | True | 탐지 9114940 | r3dvei1/java4shell RemoteAttack query padded |
+| R-body-padded | poc-shape | True | 탐지 9114941 | r3dvei1/java4shell RemoteAttack form body padded |
 | R-auth-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack auth badtail |
 | R-query-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack query badtail |
 | R-body-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack form body badtail |
-| P-text-body | poc-shape | True | 놓침(알려진 공백) | Pwned-test/cve-2026-114938-java17-PoC POST text/plain A*128+'=' |
+| P-text-body | poc-shape | True | 탐지 9114941 | Pwned-test/cve-2026-114938-java17-PoC POST text/plain A*128+'=' |
 
-**snort**: 공격형 14/17 탐지(알려진 공백 3) · 정상 314/314 조용(오탐 0)
+**snort**: 공격형 21/21 탐지(알려진 공백 0) · 정상 321/321 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -73,6 +84,17 @@
 | S-N09 | synthetic | False | - | 정상 Base64 폼 본문 |
 | S-N10 | synthetic | False | - | 정상 Base64 JSON 본문 |
 | S-N11 | synthetic | False | - | 정상 Base64 쿼리 |
+| S-Q01 | synthetic | True | 탐지 9114940 | 쿼리 ?b=A*64+'=' (리터럴 '=') |
+| S-Q02 | synthetic | True | 탐지 9114940 | 쿼리 ?x=1&b=A*64+'%3D' (인코딩) |
+| S-J01 | synthetic | True | 탐지 9114941 | JSON 본문 {"file": A*64+'='} |
+| S-F01 | synthetic | True | 탐지 9114941 | 폼 본문 data=A*64+'%3D'&x=1 |
+| S-N12 | synthetic | False | - | SAMLResponse 폼(정상 패딩, URL 인코딩) |
+| S-N13 | synthetic | False | - | data URI 이미지 JSON(정상 패딩) |
+| S-N14 | synthetic | False | - | 로그인 폼(짧은 값) |
+| S-N15 | synthetic | False | - | 서명 쿼리(16진수, '=' 꼬리 없음) |
+| S-N16 | synthetic | False | - | 긴 경로·쿼리(Base64 아님) |
+| S-N17 | synthetic | False | - | ViewState 폼(정상 패딩 1개) |
+| S-N18 | synthetic | False | - | JSON에 JWT·UUID |
 | S-G01 | synthetic | None | - | 짧은 꼬리 A*28+'=' (8그룹 미만) |
 | S-G02 | synthetic | None | - | Cookie 헤더의 트리거 |
 | S-G03 | synthetic | None | - | 사용자 정의 헤더의 트리거 |
@@ -80,10 +102,10 @@
 | R-query-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack query control |
 | R-body-control | poc-shape | False | - | r3dvei1/java4shell RemoteAttack form body control |
 | R-auth-padded | poc-shape | True | 탐지 9114938 | r3dvei1/java4shell RemoteAttack auth padded |
-| R-query-padded | poc-shape | True | 놓침(알려진 공백) | r3dvei1/java4shell RemoteAttack query padded |
-| R-body-padded | poc-shape | True | 놓침(알려진 공백) | r3dvei1/java4shell RemoteAttack form body padded |
+| R-query-padded | poc-shape | True | 탐지 9114940 | r3dvei1/java4shell RemoteAttack query padded |
+| R-body-padded | poc-shape | True | 탐지 9114941 | r3dvei1/java4shell RemoteAttack form body padded |
 | R-auth-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack auth badtail |
 | R-query-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack query badtail |
 | R-body-badtail | poc-shape | None | - | r3dvei1/java4shell RemoteAttack form body badtail |
-| P-text-body | poc-shape | True | 놓침(알려진 공백) | Pwned-test/cve-2026-114938-java17-PoC POST text/plain A*128+'=' |
+| P-text-body | poc-shape | True | 탐지 9114941 | Pwned-test/cve-2026-114938-java17-PoC POST text/plain A*128+'=' |
 
