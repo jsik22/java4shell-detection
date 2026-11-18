@@ -8,7 +8,7 @@ import json
 import sys
 from collections import defaultdict
 
-LOCAL_SIDS = {9114938, 9114939, 9114940, 9114941, 9114942, 9114943}
+LOCAL_SIDS = {9114938, 9114939, 9114940, 9114941, 9114942, 9114943, 9114944}
 
 
 def load_hits(engine, path):

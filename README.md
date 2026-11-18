@@ -18,8 +18,8 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 | 파일 | 엔진 | sid |
 |---|---|---|
-| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Authorization Basic), 9114939(Authorization Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT) |
-| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(Authorization Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT) |
+| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Authorization Basic), 9114939(Authorization Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT) |
+| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(Authorization Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT) |
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
 

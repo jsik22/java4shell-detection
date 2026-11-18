@@ -121,7 +121,7 @@ CASES.append(("G-spel-junk", "poc-shape", None, f"{SRC_G} exploit.py Basic 값 �
               req("GET", "/", [("Authorization", "Basic dXNlcjoke{T(x)}" + A * 32 + "=")])))
 CASES.append(("S-N19", "synthetic", False, "정상 JWT 세 조각(서명 URL-safe)", auth("Bearer " + JWT)))
 SRC_S = "sam00/Java4Shell-CVE-2026-114938-PoC"
-CASES.append(("S-basic-nested", "poc-shape", None, f"{SRC_S} payloads.py Basic password_literal: Base64('warmup:'+A*64+'=') — 바깥 값은 정상 Base64(이중 인코딩). 앱이 비밀번호를 다시 디코딩할 때만 트리거(범위 밖)",
+CASES.append(("S-basic-nested", "poc-shape", True, f"{SRC_S} payloads.py Basic password_literal: Base64('warmup:'+A*64+'=') — 바깥 값은 정상 Base64(이중 인코딩). 앱이 비밀번호를 다시 디코딩할 때만 트리거(9114944 HUNT)",
               auth("Basic " + base64.b64encode(("warmup:" + A * 64 + "=").encode()).decode())))
 CASES.append(("S-json-token", "poc-shape", True, f"{SRC_S} payloads.py JSON token·password 필드에 A*64+'=' 리터럴",
               req("POST", "/api/login", [("Content-Type", "application/json")], json.dumps({"token": A * 64 + "=", "password": A * 64 + "="}))))
@@ -165,6 +165,26 @@ for i in range(300):
     raw = bytes(random.getrandbits(8) for _ in range(random.randint(8, 180)))
     val = ("Bearer " + b64url(raw)) if i % 3 == 0 else ("Basic " + base64.b64encode(raw).decode())
     CASES.append((f"B{i:03d}", "benign-bulk", False, "정상 대량", auth(val)))
+
+
+# --- Basic 이중 인코딩(9114944, HUNT): 비밀번호 칸 안의 트리거. 정상 대량 뒤에 둬 난수 순서를 바꾸지 않는다 ---
+def basic_up(user, pw):
+    return "Basic " + base64.b64encode(f"{user}:{pw}".encode()).decode()
+
+
+ALNUM = B64[:62]
+CASES += [
+    ("D-P01", "synthetic", True, "Basic 안쪽 비밀번호 A*128+'='", auth(basic_up("admin", A * 128 + "="))),
+    ("D-P02", "synthetic", True, "Basic 안쪽 비밀번호 무작위 64자+'Bc='", auth(basic_up("u", rnd(64) + "Bc="))),
+    ("D-P03", "synthetic", True, "Basic 안쪽 트리거, 뒤에 다른 헤더", req("GET", "/", [("Authorization", basic_up("svc", A * 64 + "=")), ("X-Request-Id", rnd(16, "0123456789abcdef"))])),
+    ("D-P04", "synthetic", True, "Basic 안쪽 트리거, 바깥 값에 정상 패딩 '='", auth(basic_up("ab", A * 64 + "="))),
+    ("D-P05", "synthetic", True, "Basic 안쪽 트리거, 바깥 값에 정상 패딩 '=='", auth(basic_up("abcd", A * 64 + "="))),
+    ("D-N01", "synthetic", False, "Basic 안쪽 비밀번호가 정상 Base64 64자(패딩 없음)", auth(basic_up("svc", base64.b64encode(bytes(range(48))).decode()))),
+    ("D-N02", "synthetic", False, "Basic 안쪽 비밀번호가 정상 Base64 68자('==' 패딩)", auth(basic_up("svc", base64.b64encode(bytes(range(50))).decode()))),
+    ("D-N03", "synthetic", False, "Basic 안쪽 긴 영숫자 비밀번호 48자", auth(basic_up("deploy", rnd(48, ALNUM)))),
+    ("D-N04", "synthetic", False, "Basic 안쪽 '='가 든 짧은 비밀번호", auth(basic_up("user", "p@ss=word=="))),
+    ("D-G01", "synthetic", None, "Basic 안쪽 짧은 꼬리 A*28+'=' (8그룹 미만)", auth(basic_up("u", A * 28 + "="))),
+]
 
 
 def _csum(data):
