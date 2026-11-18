@@ -53,6 +53,7 @@ bash tests/run.sh RESULTS.md
   - `benign-bulk`: 무작위 정상 Basic·Bearer 300건(오탐 측정)
 - Suricata(`jasonish/suricata:7.0`)와 Snort 3(`ciscotalos/snort3`) 컨테이너를 `--network none`으로 돌려 문법 검사와 pcap 실행을 하고, [`tests/score.py`](tests/score.py)가 채점한다.
 - 통과 기준: 공격형 케이스를 모두 잡고(알려진 공백 제외) 정상 케이스 오탐 0. 알려진 공백을 새로 잡으면 종료 코드 2로 알린다.
+- 룰 파일 첫 줄 주석의 판 번호(`# java4shell-detection vX.Y.Z`)가 CHANGELOG 최신 판과 같은지 먼저 본다. 릴리스 첨부 파일과 저장소 파일은 같은 내용이다.
 - 최근 결과: [`RESULTS.md`](RESULTS.md). GitHub Actions가 push마다 같은 시험을 돈다.
 
 ## 공식 룰과 비교

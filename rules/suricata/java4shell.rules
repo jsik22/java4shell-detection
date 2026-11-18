@@ -1,5 +1,21 @@
+# java4shell-detection v0.6.2 (Suricata 7)
+# CVE-2026-114938 (Java4Shell): HTTP 요청 값 끝의 비정상 Base64 패딩 꼬리를 찾는다.
+# 트리거 모양: Base64 문자 32자 이상 뒤 '='로 끝나며, 전체 길이를 4로 나눈 나머지가 1~3(정상 패딩은 0).
+# 자체 제작·자체 시험이라 미완성일 수 있다. 차단 대신 탐지(alert) 모드로 먼저 돌린다. HUNT 룰은 사냥용이다.
+# 공격 시도만 알려 주고 성공 여부는 알려 주지 않는다. sid는 지역 룰 범위의 임의 값이다.
+# https://github.com/jsik22/java4shell-detection
+
+# 9114938 Authorization 헤더의 Basic·Bearer 값(Suricata는 한 룰). JWT처럼 점으로 나뉜 토큰은 조각 안의 트리거도 본다.
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 tail in Authorization"; flow:to_server,established; http.header; content:"Authorization|3a|"; nocase; fast_pattern; pcre:"/^Authorization:\s*(?:Basic|Bearer)\s+(?:[^\s.]*\.)*(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?![A-Za-z0-9+\/_=-])/mi"; classtype:attempted-admin; sid:9114938; rev:3;)
+
+# 9114940 URL 쿼리 값. %2B·%2F·%3D 인코딩을 한 글자로 센다.
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 tail in URL query"; flow:to_server,established; http.uri.raw; content:"="; fast_pattern; pcre:"/[?&][^=&#]*=(?:(?:[A-Za-z0-9+\/_-]|%2[BbFf]){4}){8,}(?:(?:=|%3[Dd]){1,3}|(?:[A-Za-z0-9+\/_-]|%2[BbFf])(?:=|%3[Dd]){1,2}|(?:[A-Za-z0-9+\/_-]|%2[BbFf]){2}(?:=|%3[Dd]))(?=[&#]|$)/"; classtype:attempted-admin; sid:9114940; rev:1;)
+
+# 9114941 HUNT 요청 본문(폼·JSON·텍스트)의 값. 정상 본문에서도 울릴 수 있어 사냥용이다.
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malformed Base64 tail in request body"; flow:to_server,established; http.request_body; content:"="; fast_pattern; pcre:"/(?:^|[=:\x22\s,\[])(?:(?:[A-Za-z0-9+\/_-]|%2[BbFf]){4}){8,}(?:(?:=|%3[Dd]){1,3}|(?:[A-Za-z0-9+\/_-]|%2[BbFf])(?:=|%3[Dd]){1,2}|(?:[A-Za-z0-9+\/_-]|%2[BbFf]){2}(?:=|%3[Dd]))(?=[\x22&\s,}\]]|$)/"; classtype:attempted-admin; sid:9114941; rev:2;)
+
+# 9114942 HUNT Authorization과 표준 헤더를 뺀 나머지 요청 헤더(X-Api-Key 등)의 값 자리.
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malformed Base64 tail in other request header"; flow:to_server,established; http.header; content:"="; fast_pattern; pcre:"/^(?!(?:Authorization|Host|User-Agent|Accept[A-Za-z-]*|Content-Type|Content-Length|Connection|Referer|Origin|Date|Cache-Control|Pragma|Upgrade|Upgrade-Insecure-Requests|Sec-Fetch-[A-Za-z]+|Sec-Ch-[A-Za-z-]+|DNT|TE|Priority)\s*:)[^:\r\n]+:[^\r\n]*?(?:(?<=:)\s*|(?<==)|(?<=[A-Za-z0-9] ))(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?![A-Za-z0-9+\/_=-])/mi"; classtype:attempted-admin; sid:9114942; rev:2;)
+
+# 9114943 HUNT Cookie 값('이름=값'에서 값 자리만 본다).
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malformed Base64 tail in Cookie"; flow:to_server,established; http.cookie; content:"="; fast_pattern; pcre:"/(?:^|\;)\s*[^=\;\s]+=(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?=[\;\s]|$)/"; classtype:attempted-admin; sid:9114943; rev:2;)

@@ -10,6 +10,12 @@ SURICATA_IMAGE=${SURICATA_IMAGE:-jasonish/suricata:7.0}
 SNORT_IMAGE=${SNORT_IMAGE:-ciscotalos/snort3:latest}
 REPORT=${1:-}
 
+# 룰 파일 첫 줄의 판 번호가 CHANGELOG 최신 판과 같은지 본다(릴리스 판과 파일 내용이 어긋나지 않게).
+WANT=$(grep -m1 -oE '^## v[0-9]+\.[0-9]+\.[0-9]+' "$ROOT/CHANGELOG.md" | cut -c4-)
+for f in "$ROOT"/rules/*/java4shell.rules; do
+  head -1 "$f" | grep -q "^# java4shell-detection $WANT " || { echo "판 번호 불일치: $f 첫 줄이 '# java4shell-detection $WANT (...)'가 아니다"; exit 1; }
+done
+
 mkdir -p "$WORK/t"
 cp -R "$ROOT/rules" "$WORK/t/"
 python3 -I "$ROOT/tests/fixtures.py" "$WORK/t/fixtures.pcap" "$WORK/index.json"
