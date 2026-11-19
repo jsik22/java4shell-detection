@@ -196,6 +196,39 @@ CASES += [
     ("PR-N03", "synthetic", False, "Priority 정상 바이너리 68자('==' 패딩)", req("GET", "/", [("Priority", "u=1, x=:" + base64.b64encode(bytes(range(50))).decode() + ":")])),
 ]
 
+# --- Talos 공식 룰(2026-11-19, Snort Community 룰에 공개)이 다루는 요청 위치. 값은 공개 트리거 모양만 쓴다. 정상 대량 뒤에 둔다 ---
+T = A * 64 + "="
+MP = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+def mp_body(name):
+    return f"--{MP}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\nvalue\r\n--{MP}--\r\n"
+CASES += [
+    ("T-apikey", "talos-shape", True, "Talos 67507 위치: Authorization ApiKey 스킴", auth("ApiKey " + T)),
+    ("T-other", "talos-shape", True, "Talos 67508 위치: Authorization Other 스킴", auth("Other " + T)),
+    ("T-samlart", "talos-shape", True, "Talos 67502 위치: SAML 쿼리 SAMLart", req("GET", "/realms/demo/protocol/saml?SAMLart=" + T, [])),
+    ("T-xconnect", "talos-shape", True, "Talos 67503 위치: X-Connect-Authorization 헤더", req("POST", "/connectors/c1/fence", [("X-Connect-Authorization", T)])),
+    ("T-csp-path", "talos-shape", True, "Talos 67504 위치: URL 경로 조각 뒤 ':'", req("POST", "/content-security-policy-reporting-endpoint/" + T + ":ctx", [("Content-Type", "application/csp-report")], "{}")),
+    ("T-console", "talos-shape", True, "Talos 67505 위치: X-ConsoleAnnotator 헤더", req("POST", "/job/demo/1/logText/progressiveHtml", [("X-ConsoleAnnotator", T)])),
+    ("T-pagetoken", "talos-shape", True, "Talos 67506 위치: 쿼리 값 안 '접두어=' 뒤", req("GET", "/rest/api/branches/?next-page-token=v1=" + T, [])),
+    ("T-mp-boundary", "talos-shape", True, "Talos 67509 위치: multipart boundary의 RFC 2047 인코딩 단어",
+     req("POST", "/upload", [("Content-Type", "multipart/form-data; boundary=\"=?UTF-8?B?" + T + "?=\"")], "x")),
+    ("T-mp-name", "talos-shape", True, "Talos 67510 위치: multipart 본문 name의 RFC 2047 인코딩 단어",
+     req("POST", "/upload", [("Content-Type", "multipart/form-data; boundary=" + MP)], mp_body("=?UTF-8?B?" + T + "?="))),
+    ("T-h2settings", "talos-shape", True, "Talos 67511 위치: HTTP2-Settings 헤더(h2c 업그레이드)",
+     req("GET", "/", [("Connection", "Upgrade, HTTP2-Settings"), ("Upgrade", "h2c"), ("HTTP2-Settings", T)])),
+    ("T-priority", "talos-shape", True, "Talos 301754 위치: Priority 사전 멤버 바이너리", req("GET", "/", [("Priority", "u=3, x=:" + T + ":")])),
+    ("TN-apikey", "talos-shape", False, "정상 ApiKey(정상 패딩 Base64)", auth("ApiKey " + base64.b64encode(bytes(range(44))).decode())),
+    ("TN-negotiate", "talos-shape", False, "정상 Negotiate 토큰", auth("Negotiate " + base64.b64encode(bytes(range(120))).decode())),
+    ("TN-aws4", "talos-shape", False, "정상 AWS4-HMAC-SHA256 서명", auth("AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20261119/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-date, Signature=" + rnd(64, "0123456789abcdef"))),
+    ("TN-digest", "talos-shape", False, "정상 Digest", auth('Digest username="svc", realm="api", nonce="' + base64.b64encode(bytes(range(33))).decode() + '", uri="/", response="' + rnd(32, "0123456789abcdef") + '"')),
+    ("TN-sharedkey", "talos-shape", False, "정상 SharedKey(계정:서명)", auth("SharedKey account1:" + base64.b64encode(bytes(range(32))).decode())),
+    ("TN-mp", "talos-shape", False, "정상 multipart와 RFC 2047 이름(정상 Base64)",
+     req("POST", "/upload", [("Content-Type", "multipart/form-data; boundary=" + MP)], mp_body("=?UTF-8?B?" + base64.b64encode("보고서-2026-11-최종본-첨부.txt".encode()).decode() + "?="))),
+    ("TN-h2settings", "talos-shape", False, "정상 HTTP2-Settings", req("GET", "/", [("Connection", "Upgrade, HTTP2-Settings"), ("Upgrade", "h2c"), ("HTTP2-Settings", "AAMAAABkAARAAAAAAAIAAAAA")])),
+    ("TN-csp-path", "talos-shape", False, "정상 경로 조각(URL-safe 64자)", req("POST", "/content-security-policy-reporting-endpoint/" + b64url(bytes(range(48))) + ":ctx", [], "{}")),
+    ("TN-path-pad", "talos-shape", False, "정상 경로 조각(정상 패딩 '==')", req("GET", "/files/" + base64.urlsafe_b64encode(bytes(range(50))).decode() + "/meta", [])),
+    ("TN-pagetoken", "talos-shape", False, "정상 next-page-token(정상 Base64 64자)", req("GET", "/rest/api/branches/?next-page-token=" + base64.b64encode(bytes(range(48))).decode(), [])),
+]
+
 
 def _csum(data):
     if len(data) % 2:

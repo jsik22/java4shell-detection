@@ -1,9 +1,9 @@
 # 회귀 시험 결과
 
-- 실행: 2026-11-19T14:29Z
+- 실행: 2026-11-19T15:01Z
 - 엔진: Suricata version 7.0.17, Snort++ 3.10.0.0
 
-**suricata**: 공격형 42/42 탐지(알려진 공백 0) · 정상 347/347 조용(오탐 0)
+**suricata**: 공격형 53/53 탐지(알려진 공백 0) · 정상 357/357 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -103,8 +103,29 @@
 | PR-N01 | synthetic | False | - | 정상 Priority u=0, i |
 | PR-N02 | synthetic | False | - | Priority 정상 바이너리 64자(패딩 없음) |
 | PR-N03 | synthetic | False | - | Priority 정상 바이너리 68자('==' 패딩) |
+| T-apikey | talos-shape | True | 탐지 9114946 | Talos 67507 위치: Authorization ApiKey 스킴 |
+| T-other | talos-shape | True | 탐지 9114946 | Talos 67508 위치: Authorization Other 스킴 |
+| T-samlart | talos-shape | True | 탐지 9114940 | Talos 67502 위치: SAML 쿼리 SAMLart |
+| T-xconnect | talos-shape | True | 탐지 9114942 | Talos 67503 위치: X-Connect-Authorization 헤더 |
+| T-csp-path | talos-shape | True | 탐지 9114947 | Talos 67504 위치: URL 경로 조각 뒤 ':' |
+| T-console | talos-shape | True | 탐지 9114942 | Talos 67505 위치: X-ConsoleAnnotator 헤더 |
+| T-pagetoken | talos-shape | True | 탐지 9114940 | Talos 67506 위치: 쿼리 값 안 '접두어=' 뒤 |
+| T-mp-boundary | talos-shape | True | 탐지 9114948 | Talos 67509 위치: multipart boundary의 RFC 2047 인코딩 단어 |
+| T-mp-name | talos-shape | True | 탐지 9114941 | Talos 67510 위치: multipart 본문 name의 RFC 2047 인코딩 단어 |
+| T-h2settings | talos-shape | True | 탐지 9114942 | Talos 67511 위치: HTTP2-Settings 헤더(h2c 업그레이드) |
+| T-priority | talos-shape | True | 탐지 9114945 | Talos 301754 위치: Priority 사전 멤버 바이너리 |
+| TN-apikey | talos-shape | False | - | 정상 ApiKey(정상 패딩 Base64) |
+| TN-negotiate | talos-shape | False | - | 정상 Negotiate 토큰 |
+| TN-aws4 | talos-shape | False | - | 정상 AWS4-HMAC-SHA256 서명 |
+| TN-digest | talos-shape | False | - | 정상 Digest |
+| TN-sharedkey | talos-shape | False | - | 정상 SharedKey(계정:서명) |
+| TN-mp | talos-shape | False | - | 정상 multipart와 RFC 2047 이름(정상 Base64) |
+| TN-h2settings | talos-shape | False | - | 정상 HTTP2-Settings |
+| TN-csp-path | talos-shape | False | - | 정상 경로 조각(URL-safe 64자) |
+| TN-path-pad | talos-shape | False | - | 정상 경로 조각(정상 패딩 '==') |
+| TN-pagetoken | talos-shape | False | - | 정상 next-page-token(정상 Base64 64자) |
 
-**snort**: 공격형 42/42 탐지(알려진 공백 0) · 정상 347/347 조용(오탐 0)
+**snort**: 공격형 53/53 탐지(알려진 공백 0) · 정상 357/357 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -204,4 +225,25 @@
 | PR-N01 | synthetic | False | - | 정상 Priority u=0, i |
 | PR-N02 | synthetic | False | - | Priority 정상 바이너리 64자(패딩 없음) |
 | PR-N03 | synthetic | False | - | Priority 정상 바이너리 68자('==' 패딩) |
+| T-apikey | talos-shape | True | 탐지 9114946 | Talos 67507 위치: Authorization ApiKey 스킴 |
+| T-other | talos-shape | True | 탐지 9114946 | Talos 67508 위치: Authorization Other 스킴 |
+| T-samlart | talos-shape | True | 탐지 9114940 | Talos 67502 위치: SAML 쿼리 SAMLart |
+| T-xconnect | talos-shape | True | 탐지 9114942 | Talos 67503 위치: X-Connect-Authorization 헤더 |
+| T-csp-path | talos-shape | True | 탐지 9114947 | Talos 67504 위치: URL 경로 조각 뒤 ':' |
+| T-console | talos-shape | True | 탐지 9114942 | Talos 67505 위치: X-ConsoleAnnotator 헤더 |
+| T-pagetoken | talos-shape | True | 탐지 9114940 | Talos 67506 위치: 쿼리 값 안 '접두어=' 뒤 |
+| T-mp-boundary | talos-shape | True | 탐지 9114948 | Talos 67509 위치: multipart boundary의 RFC 2047 인코딩 단어 |
+| T-mp-name | talos-shape | True | 탐지 9114941 | Talos 67510 위치: multipart 본문 name의 RFC 2047 인코딩 단어 |
+| T-h2settings | talos-shape | True | 탐지 9114942 | Talos 67511 위치: HTTP2-Settings 헤더(h2c 업그레이드) |
+| T-priority | talos-shape | True | 탐지 9114945 | Talos 301754 위치: Priority 사전 멤버 바이너리 |
+| TN-apikey | talos-shape | False | - | 정상 ApiKey(정상 패딩 Base64) |
+| TN-negotiate | talos-shape | False | - | 정상 Negotiate 토큰 |
+| TN-aws4 | talos-shape | False | - | 정상 AWS4-HMAC-SHA256 서명 |
+| TN-digest | talos-shape | False | - | 정상 Digest |
+| TN-sharedkey | talos-shape | False | - | 정상 SharedKey(계정:서명) |
+| TN-mp | talos-shape | False | - | 정상 multipart와 RFC 2047 이름(정상 Base64) |
+| TN-h2settings | talos-shape | False | - | 정상 HTTP2-Settings |
+| TN-csp-path | talos-shape | False | - | 정상 경로 조각(URL-safe 64자) |
+| TN-path-pad | talos-shape | False | - | 정상 경로 조각(정상 패딩 '==') |
+| TN-pagetoken | talos-shape | False | - | 정상 next-page-token(정상 Base64 64자) |
 

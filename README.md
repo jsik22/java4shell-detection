@@ -4,8 +4,8 @@ Java4Shell(CVE-2026-114938) 네트워크 탐지 룰(Snort 3·Suricata)과 그 �
 Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), with a synthetic-pcap regression test. Rules only — no exploit code.
 
 > **주의 / Disclaimer**
-> 이 룰은 [CyberTissue](https://github.com/jsik22/cybertissue)가 공개된 기술 정보와 공개 PoC의 요청 모양을 바탕으로 직접 만들고 직접 시험한 것으로, **계속 업데이트 중입니다.** 제3자 검증과 실제 운영 트래픽 오탐 확인은 거치지 않았으니 차단(drop) 대신 탐지(alert) 모드로 먼저 돌려 보세요. Emerging Threats 공식 룰과의 비교는 [공식 룰과 비교](#공식-룰과-비교)에 있고, 두 룰은 함께 쓸 수 있습니다.
-> These rules are self-made, self-tested, and continuously updated. They have not been validated by third parties or against production traffic, so run them in alert mode first. A comparison with the official Emerging Threats rules is in the section below; both rule sets can be used together.
+> 이 룰은 [CyberTissue](https://github.com/jsik22/cybertissue)가 공개된 기술 정보와 공개 PoC의 요청 모양을 바탕으로 직접 만들고 직접 시험한 것으로, **계속 업데이트 중입니다.** 제3자 검증과 실제 운영 트래픽 오탐 확인은 거치지 않았으니 차단(drop) 대신 탐지(alert) 모드로 먼저 돌려 보세요. Emerging Threats·Talos 공식 룰과의 비교는 [공식 룰과 비교](#공식-룰과-비교)에 있고, 두 룰은 함께 쓸 수 있습니다.
+> These rules are self-made, self-tested, and continuously updated. They have not been validated by third parties or against production traffic, so run them in alert mode first. A comparison with the official Emerging Threats and Talos rules is in the section below; both rule sets can be used together.
 
 ## 취약점 요약
 
@@ -18,17 +18,20 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 | 파일 | 엔진 | sid |
 |---|---|---|
-| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Authorization Basic), 9114939(Authorization Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT), 9114945(Priority 헤더 바이너리 항목) |
-| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(Authorization Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT), 9114945(Priority 헤더 바이너리 항목) |
+| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Authorization Basic), 9114939(Authorization Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT), 9114945(Priority 헤더 바이너리 항목), 9114946(Authorization 그 밖의 스킴), 9114947(URL 경로 조각, HUNT), 9114948(헤더 RFC 2047 인코딩 단어) |
+| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(Authorization Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT), 9114945(Priority 헤더 바이너리 항목), 9114946(Authorization 그 밖의 스킴), 9114947(URL 경로 조각, HUNT), 9114948(헤더 RFC 2047 인코딩 단어) |
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
 
 - 9114938·9114939: Authorization 헤더(Basic·Bearer). JWT처럼 점(.)으로 나뉜 토큰은 각 조각을 따로 본다.
-- 9114940: URL 쿼리 파라미터 값(인코딩 전 원문을 본다).
+- 9114940: URL 쿼리 파라미터 값(인코딩 전 원문을 본다). 값 안의 `접두어=` 뒤 트리거도 본다.
 - 9114941(HUNT): 요청 본문(텍스트·폼·JSON). 정상 데이터에서 오탐이 날 여지가 가장 커서 사냥용으로 이름을 붙였다. 탐지 모드에서 먼저 돌려 본다.
 - 9114942(HUNT): Authorization과 표준 헤더(Host, User-Agent, Accept 계열, Content-Type, Referer, Origin, Sec-Fetch·Sec-Ch 계열 등)를 뺀 나머지 요청 헤더(예: X-Auth-Token, X-Api-Key). 직접 만든 인증 헤더로 Base64를 받는 애플리케이션을 겨냥한다.
 - 9114943(HUNT): Cookie 값.
 - 9114945: `Priority` 헤더(RFC 9218 구조화 필드) 안 바이너리 항목(`:값:`). 정상 `Priority` 값(`u=`, `i`)에는 바이너리 항목이 없다. Talos 공식 룰 설명을 보고 v0.8.0에 더했다.
+- 9114946: Authorization 헤더의 Basic·Bearer가 아닌 스킴(예: ApiKey).
+- 9114947(HUNT): URL 경로 조각('?' 앞 경로에서 '/' 뒤 값).
+- 9114948: 요청 헤더 안 RFC 2047 인코딩 단어(`=?UTF-8?B?값?=`, 예: multipart boundary). 본문 안 인코딩 단어(multipart 이름 등)는 9114941(HUNT)이 본다.
 - 러프하게 "Base64처럼 생긴 값이 있으면 모두 탐지"하는 방식은 시험에서 정상 요청의 92%에 경보가 나 쓰지 않는다. 인증, 웹소켓 키, HTTP 서명, Digest, CSRF 토큰, 요청·추적 ID가 모두 Base64 문자로만 이루어져 있어 디코딩 없이는 구분할 수 없다. 그래서 모든 룰이 트리거의 핵심 특징(32자 이상 + 정상 패딩이 아닌 '=' 꼬리)만 본다.
 
 공격 **시도**를 잡을 뿐 성공 여부는 알려 주지 않는다. sid는 지역 룰 범위로 임의로 붙인 값이니 환경에 맞게 바꾼다.
@@ -61,22 +64,17 @@ bash tests/run.sh RESULTS.md
 
 Emerging Threats Open에 2026-11-18자로 Java4Shell 룰 6개(sid 2072829~2072834)가 올라왔다. 같은 시험 pcap을 Suricata 7.0에 돌려 비교했다(2026-11-19, 주소 변수만 `any`로 바꿈. 공식 룰 원문은 이 저장소에 넣지 않는다).
 
-Talos(Snort Subscriber Ruleset)는 2026-11-19 릴리스 변경 목록에 OpenJDK Base64 디코더 룰 13개(1:67502~67513, Snort 3 전용 1:301754)를 올렸다. 기본 활성은 67507·67508·67512·67513이다. 구독 룰이라 원문이 없어 같은 pcap 비교는 하지 못했다. 공개된 룰 문서 설명은 다음과 같다.
+Talos 공식 룰 13개(2026-11-19, 1:67502~67513, Snort 3 전용 1:301754)는 무료 Snort Community 룰 묶음에도 들어 있다. 같은 시험 pcap을 Snort 3.10에 돌려 비교했다(2026-11-20, 원문은 이 저장소에 넣지 않는다).
 
-- 대부분: 애플리케이션 입력 속 Base64 값의 길이·문자·패딩 모양을 본다(이 저장소와 같은 접근).
-- 1:301754: `Priority` 헤더의 바이너리 값. 이 저장소는 그동안 `Priority`를 표준 헤더로 빼 두어 보지 못했고, v0.8.0에서 9114945로 더했다.
-- 1:67513: Elasticsearch 검색 요청 안의 Painless 스크립트가 비정상 Base64 입력을 만드는 모양. 값이 서버 안에서 만들어지면 요청에 트리거 문자열이 나타나지 않아 이 저장소 룰은 보지 못한다(알려진 한계).
-
-| 룰 묶음 | 공격형 32건 | 정상 340건 오탐 |
+| 룰 묶음 | 공격형 53건 | 정상 357건 오탐 |
 |---|---|---|
-| 이 저장소 v0.6.x(Suricata) | 32 | 0 |
-| ET 기본 활성 3개(PoC User-Agent, `A`×64+`=`, `A`×128+`=`) | 16 | 0 |
-| ET 6개 전부(주석 처리된 HUNTING 3개 포함) | 22 | 56 |
+| 이 저장소 v0.9.0(Snort 3·Suricata) | 53 | 0 |
+| Talos 13개(Snort 3) | 23 | 0 |
 
-- ET 기본 활성 룰은 공개 PoC의 고정 문자열(`A` 반복 뒤 `=`)을 찾는다. 다른 글자로 된 값, `B=`·`BC=`처럼 꼬리 글자가 붙은 모양, URL 인코딩 `%3D`, 64자가 아닌 길이(32·35·49자), JWT 조각 안 트리거를 놓친다. 대신 오탐이 없다.
-- ET의 주석 처리된 HUNTING 3개(URI·헤더·본문)는 64자 이상 Base64 뒤 `=` 꼬리를 보지만 전체 길이를 4로 나눈 나머지를 따지지 않아, 정상 패딩(`...XYZ=`)이 붙은 헤더·본문에서도 울린다(위 56건, 대부분 정상 Basic·Bearer 헤더). ET도 이 룰을 기본으로 끄고 신뢰도 Low로 표시했다.
-- 이 시험 데이터는 이 저장소 룰을 만들며 함께 만든 것이라 이 저장소 쪽에 유리할 수 있다. 운영 트래픽 기준 비교는 아니다.
-- 두 묶음은 함께 쓸 수 있다. ET의 User-Agent 룰(공개 PoC 도구 이름)은 이 저장소에 없는 단서다.
+- Talos 룰은 대부분 제품별 요청 위치(SAML 아티팩트, 커넥터 인증 헤더, 콘솔 주석 헤더, CSP 보고 경로, 브랜치 페이지 토큰, Authorization의 Basic·ApiKey·Other 스킴, multipart 인코딩 단어, HTTP2-Settings, Priority 헤더, Elasticsearch Painless 스크립트)를 경로와 함께 좁게 본다. 기본 활성은 67507·67508·67512·67513 네 개다.
+- 64자 이상 Base64 뒤 비정상 '=' 꼬리만 본다. 그래서 32·35·49자 같은 짧은 값, `===` 꼬리, Bearer·JWT 조각, 일반 쿼리·본문·쿠키·사용자 정의 헤더, Basic 안쪽 이중 인코딩은 보지 않는다(위 30건 차이).
+- 이 저장소는 v0.9.0에서 Talos가 다루는 위치 중 놓치던 곳(Authorization의 다른 스킴, URL 경로 조각, 쿼리 값 안 `접두어=` 뒤, multipart boundary·이름의 인코딩 단어)을 보강했다. 이 위치의 시험 케이스 11건은 Talos 룰을 보고 만들어 Talos 쪽에 유리하고, 나머지 케이스는 이 저장소 룰과 함께 만들어 이 저장소 쪽에 유리하다. 운영 트래픽 기준 비교는 아니다.
+- 1:67513은 Elasticsearch 검색 요청 본문 안의 Painless 스크립트 문자열(값을 서버 안에서 만드는 모양)을 본다. 요청에 트리거 값이 없으니 이 저장소 룰은 보지 못한다. 두 묶음은 함께 쓸 수 있다.
 
 ## 보강 방식
 

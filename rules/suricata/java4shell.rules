@@ -1,4 +1,4 @@
-# java4shell-detection v0.8.0 (Suricata 7)
+# java4shell-detection v0.9.0 (Suricata 7)
 # CVE-2026-114938 (Java4Shell): HTTP 요청 값 끝의 비정상 Base64 패딩 꼬리를 찾는다.
 # 트리거 모양: Base64 문자 32자 이상 뒤 '='로 끝나며, 전체 길이를 4로 나눈 나머지가 1~3(정상 패딩은 0).
 # 자체 제작·자체 시험이며 계속 업데이트 중이다. 제3자 검증 전이니 차단 대신 탐지(alert) 모드로 먼저 돌린다. HUNT 룰은 사냥용이다.
@@ -9,10 +9,10 @@
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 tail in Authorization"; flow:to_server,established; http.header; content:"Authorization|3a|"; nocase; fast_pattern; pcre:"/^Authorization:\s*(?:Basic|Bearer)\s+(?:[^\s.]*\.)*(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?![A-Za-z0-9+\/_=-])/mi"; classtype:attempted-admin; sid:9114938; rev:3;)
 
 # 9114940 URL 쿼리 값. %2B·%2F·%3D 인코딩을 한 글자로 센다.
-alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 tail in URL query"; flow:to_server,established; http.uri.raw; content:"="; fast_pattern; pcre:"/[?&][^=&#]*=(?:(?:[A-Za-z0-9+\/_-]|%2[BbFf]){4}){8,}(?:(?:=|%3[Dd]){1,3}|(?:[A-Za-z0-9+\/_-]|%2[BbFf])(?:=|%3[Dd]){1,2}|(?:[A-Za-z0-9+\/_-]|%2[BbFf]){2}(?:=|%3[Dd]))(?=[&#]|$)/"; classtype:attempted-admin; sid:9114940; rev:1;)
+alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 tail in URL query"; flow:to_server,established; http.uri.raw; content:"="; fast_pattern; pcre:"/[?&][^=&#]*=(?:[^&=#]{0,256}=)?(?:(?:[A-Za-z0-9+\/_-]|%2[BbFf]){4}){8,}(?:(?:=|%3[Dd]){1,3}|(?:[A-Za-z0-9+\/_-]|%2[BbFf])(?:=|%3[Dd]){1,2}|(?:[A-Za-z0-9+\/_-]|%2[BbFf]){2}(?:=|%3[Dd]))(?=[&#]|$)/"; classtype:attempted-admin; sid:9114940; rev:2;)
 
 # 9114941 HUNT 요청 본문(폼·JSON·텍스트)의 값. 정상 본문에서도 울릴 수 있어 사냥용이다.
-alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malformed Base64 tail in request body"; flow:to_server,established; http.request_body; content:"="; fast_pattern; pcre:"/(?:^|[=:\x22\s,\[])(?:(?:[A-Za-z0-9+\/_-]|%2[BbFf]){4}){8,}(?:(?:=|%3[Dd]){1,3}|(?:[A-Za-z0-9+\/_-]|%2[BbFf])(?:=|%3[Dd]){1,2}|(?:[A-Za-z0-9+\/_-]|%2[BbFf]){2}(?:=|%3[Dd]))(?=[\x22&\s,}\]]|$)/"; classtype:attempted-admin; sid:9114941; rev:2;)
+alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malformed Base64 tail in request body"; flow:to_server,established; http.request_body; content:"="; fast_pattern; pcre:"/(?:^|[=:\x22\s,\[?])(?:(?:[A-Za-z0-9+\/_-]|%2[BbFf]){4}){8,}(?:(?:=|%3[Dd]){1,3}|(?:[A-Za-z0-9+\/_-]|%2[BbFf])(?:=|%3[Dd]){1,2}|(?:[A-Za-z0-9+\/_-]|%2[BbFf]){2}(?:=|%3[Dd]))(?=[\x22&\s,}\]?]|$)/"; classtype:attempted-admin; sid:9114941; rev:3;)
 
 # 9114942 HUNT Authorization과 표준 헤더를 뺀 나머지 요청 헤더(X-Api-Key 등)의 값 자리.
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malformed Base64 tail in other request header"; flow:to_server,established; http.header; content:"="; fast_pattern; pcre:"/^(?!(?:Authorization|Host|User-Agent|Accept[A-Za-z-]*|Content-Type|Content-Length|Connection|Referer|Origin|Date|Cache-Control|Pragma|Upgrade|Upgrade-Insecure-Requests|Sec-Fetch-[A-Za-z]+|Sec-Ch-[A-Za-z-]+|DNT|TE|Priority)\s*:)[^:\r\n]+:[^\r\n]*?(?:(?<=:)\s*|(?<==)|(?<=[A-Za-z0-9] ))(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?![A-Za-z0-9+\/_=-])/mi"; classtype:attempted-admin; sid:9114942; rev:2;)
@@ -25,3 +25,12 @@ alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malfor
 
 # 9114945 Priority 헤더(RFC 9218 구조화 필드) 안 바이너리 항목(:값:)의 비정상 꼬리. 정상 Priority(u=, i)에는 바이너리 항목이 없다. Talos 11-19 공식 룰(1:301754)이 이 경로를 다룬 것을 보고 더함.
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 binary item in Priority header"; flow:to_server,established; http.header; content:"Priority|3a|"; nocase; fast_pattern; pcre:"/^Priority:[^\r\n]*:(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?![A-Za-z0-9+\/_=-])/mi"; classtype:attempted-admin; sid:9114945; rev:1;)
+
+# 9114946 Authorization 헤더의 Basic·Bearer가 아닌 스킴(ApiKey 등) 값. Talos 67507·67508이 다루는 위치.
+alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 tail in Authorization other scheme"; flow:to_server,established; http.header; content:"Authorization|3a|"; nocase; fast_pattern; pcre:"/^Authorization:\s*(?!(?:basic|bearer)\s)[A-Za-z][A-Za-z0-9._~+\/-]*\s+(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?![A-Za-z0-9+\/_=-])/mi"; classtype:attempted-admin; sid:9114946; rev:1;)
+
+# 9114947 HUNT URL 경로 조각. '?' 앞 경로에서 '/' 뒤 값이 트리거 모양이고 '/', ':', ';', '?' 또는 끝으로 이어질 때. Talos 67504가 다루는 위치.
+alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malformed Base64 tail in URL path segment"; flow:to_server,established; http.uri.raw; content:"="; fast_pattern; pcre:"/^[^?#]*\/(?:(?:[A-Za-z0-9+_-]|%2[Bb]){4}){8,}(?:(?:=|%3[Dd]){1,3}|(?:[A-Za-z0-9+_-]|%2[Bb])(?:=|%3[Dd]){1,2}|(?:[A-Za-z0-9+_-]|%2[Bb]){2}(?:=|%3[Dd]))(?=[\/?\;:#]|$)/"; classtype:attempted-admin; sid:9114947; rev:1;)
+
+# 9114948 요청 헤더 안 RFC 2047 인코딩 단어(=?charset?B?값?=, multipart boundary 등)의 값. Talos 67509가 다루는 위치.
+alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 tail in RFC 2047 encoded word in header"; flow:to_server,established; http.header; content:"?B?"; nocase; fast_pattern; pcre:"/=\?[^?\s]{1,40}\?B\?(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?=\?=)/i"; classtype:attempted-admin; sid:9114948; rev:1;)
