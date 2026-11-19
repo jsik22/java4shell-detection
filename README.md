@@ -18,8 +18,8 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 | 파일 | 엔진 | sid |
 |---|---|---|
-| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Authorization Basic), 9114939(Authorization Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT) |
-| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(Authorization Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT) |
+| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Authorization Basic), 9114939(Authorization Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT), 9114945(Priority 헤더 바이너리 항목) |
+| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(Authorization Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT), 9114945(Priority 헤더 바이너리 항목) |
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
 
@@ -28,6 +28,7 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 - 9114941(HUNT): 요청 본문(텍스트·폼·JSON). 정상 데이터에서 오탐이 날 여지가 가장 커서 사냥용으로 이름을 붙였다. 탐지 모드에서 먼저 돌려 본다.
 - 9114942(HUNT): Authorization과 표준 헤더(Host, User-Agent, Accept 계열, Content-Type, Referer, Origin, Sec-Fetch·Sec-Ch 계열 등)를 뺀 나머지 요청 헤더(예: X-Auth-Token, X-Api-Key). 직접 만든 인증 헤더로 Base64를 받는 애플리케이션을 겨냥한다.
 - 9114943(HUNT): Cookie 값.
+- 9114945: `Priority` 헤더(RFC 9218 구조화 필드) 안 바이너리 항목(`:값:`). 정상 `Priority` 값(`u=`, `i`)에는 바이너리 항목이 없다. Talos 공식 룰 설명을 보고 v0.8.0에 더했다.
 - 러프하게 "Base64처럼 생긴 값이 있으면 모두 탐지"하는 방식은 시험에서 정상 요청의 92%에 경보가 나 쓰지 않는다. 인증, 웹소켓 키, HTTP 서명, Digest, CSRF 토큰, 요청·추적 ID가 모두 Base64 문자로만 이루어져 있어 디코딩 없이는 구분할 수 없다. 그래서 모든 룰이 트리거의 핵심 특징(32자 이상 + 정상 패딩이 아닌 '=' 꼬리)만 본다.
 
 공격 **시도**를 잡을 뿐 성공 여부는 알려 주지 않는다. sid는 지역 룰 범위로 임의로 붙인 값이니 환경에 맞게 바꾼다.
@@ -58,7 +59,13 @@ bash tests/run.sh RESULTS.md
 
 ## 공식 룰과 비교
 
-Emerging Threats Open에 2026-11-18자로 Java4Shell 룰 6개(sid 2072829~2072834)가 올라왔다. 같은 시험 pcap을 Suricata 7.0에 돌려 비교했다(2026-11-19, 주소 변수만 `any`로 바꿈. 공식 룰 원문은 이 저장소에 넣지 않는다). Talos(Snort) 공식 룰은 아직 없다.
+Emerging Threats Open에 2026-11-18자로 Java4Shell 룰 6개(sid 2072829~2072834)가 올라왔다. 같은 시험 pcap을 Suricata 7.0에 돌려 비교했다(2026-11-19, 주소 변수만 `any`로 바꿈. 공식 룰 원문은 이 저장소에 넣지 않는다).
+
+Talos(Snort Subscriber Ruleset)는 2026-11-19 릴리스 변경 목록에 OpenJDK Base64 디코더 룰 13개(1:67502~67513, Snort 3 전용 1:301754)를 올렸다. 기본 활성은 67507·67508·67512·67513이다. 구독 룰이라 원문이 없어 같은 pcap 비교는 하지 못했다. 공개된 룰 문서 설명은 다음과 같다.
+
+- 대부분: 애플리케이션 입력 속 Base64 값의 길이·문자·패딩 모양을 본다(이 저장소와 같은 접근).
+- 1:301754: `Priority` 헤더의 바이너리 값. 이 저장소는 그동안 `Priority`를 표준 헤더로 빼 두어 보지 못했고, v0.8.0에서 9114945로 더했다.
+- 1:67513: Elasticsearch 검색 요청 안의 Painless 스크립트가 비정상 Base64 입력을 만드는 모양. 값이 서버 안에서 만들어지면 요청에 트리거 문자열이 나타나지 않아 이 저장소 룰은 보지 못한다(알려진 한계).
 
 | 룰 묶음 | 공격형 32건 | 정상 340건 오탐 |
 |---|---|---|

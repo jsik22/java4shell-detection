@@ -1,9 +1,9 @@
 # 회귀 시험 결과
 
-- 실행: 2026-11-18T23:44Z
+- 실행: 2026-11-19T14:29Z
 - 엔진: Suricata version 7.0.17, Snort++ 3.10.0.0
 
-**suricata**: 공격형 39/39 탐지(알려진 공백 0) · 정상 344/344 조용(오탐 0)
+**suricata**: 공격형 42/42 탐지(알려진 공백 0) · 정상 347/347 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -97,8 +97,14 @@
 | D-N03 | synthetic | False | - | Basic 안쪽 긴 영숫자 비밀번호 48자 |
 | D-N04 | synthetic | False | - | Basic 안쪽 '='가 든 짧은 비밀번호 |
 | D-G01 | synthetic | None | - | Basic 안쪽 짧은 꼬리 A*28+'=' (8그룹 미만) |
+| PR-P01 | synthetic | True | 탐지 9114945 | Priority 사전 멤버 바이너리 :A*64+'=:' |
+| PR-P02 | synthetic | True | 탐지 9114945 | Priority 바이너리 항목만 :A*128+'=:' |
+| PR-P03 | synthetic | True | 탐지 9114945 | Priority 소문자 헤더명, 무작위 64자+'Bc=' |
+| PR-N01 | synthetic | False | - | 정상 Priority u=0, i |
+| PR-N02 | synthetic | False | - | Priority 정상 바이너리 64자(패딩 없음) |
+| PR-N03 | synthetic | False | - | Priority 정상 바이너리 68자('==' 패딩) |
 
-**snort**: 공격형 39/39 탐지(알려진 공백 0) · 정상 344/344 조용(오탐 0)
+**snort**: 공격형 42/42 탐지(알려진 공백 0) · 정상 347/347 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -192,4 +198,10 @@
 | D-N03 | synthetic | False | - | Basic 안쪽 긴 영숫자 비밀번호 48자 |
 | D-N04 | synthetic | False | - | Basic 안쪽 '='가 든 짧은 비밀번호 |
 | D-G01 | synthetic | None | - | Basic 안쪽 짧은 꼬리 A*28+'=' (8그룹 미만) |
+| PR-P01 | synthetic | True | 탐지 9114945 | Priority 사전 멤버 바이너리 :A*64+'=:' |
+| PR-P02 | synthetic | True | 탐지 9114945 | Priority 바이너리 항목만 :A*128+'=:' |
+| PR-P03 | synthetic | True | 탐지 9114945 | Priority 소문자 헤더명, 무작위 64자+'Bc=' |
+| PR-N01 | synthetic | False | - | 정상 Priority u=0, i |
+| PR-N02 | synthetic | False | - | Priority 정상 바이너리 64자(패딩 없음) |
+| PR-N03 | synthetic | False | - | Priority 정상 바이너리 68자('==' 패딩) |
 

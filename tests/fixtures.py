@@ -186,6 +186,16 @@ CASES += [
     ("D-G01", "synthetic", None, "Basic 안쪽 짧은 꼬리 A*28+'=' (8그룹 미만)", auth(basic_up("u", A * 28 + "="))),
 ]
 
+# --- Priority 헤더 바이너리 항목(9114945). Talos 2026-11-19 공식 룰 1:301754 설명("parsed Priority header"의 바이너리 값)을 보고 더함. 정상 대량 뒤에 둔다 ---
+CASES += [
+    ("PR-P01", "synthetic", True, "Priority 사전 멤버 바이너리 :A*64+'=:'", req("GET", "/", [("Priority", "u=3, x=:" + A * 64 + "=:")])),
+    ("PR-P02", "synthetic", True, "Priority 바이너리 항목만 :A*128+'=:'", req("GET", "/", [("Priority", ":" + A * 128 + "=:")])),
+    ("PR-P03", "synthetic", True, "Priority 소문자 헤더명, 무작위 64자+'Bc='", req("GET", "/", [("priority", "i, y=:" + rnd(64) + "Bc=:")])),
+    ("PR-N01", "synthetic", False, "정상 Priority u=0, i", req("GET", "/", [("Priority", "u=0, i")])),
+    ("PR-N02", "synthetic", False, "Priority 정상 바이너리 64자(패딩 없음)", req("GET", "/", [("Priority", "u=3, x=:" + base64.b64encode(bytes(range(48))).decode() + ":")])),
+    ("PR-N03", "synthetic", False, "Priority 정상 바이너리 68자('==' 패딩)", req("GET", "/", [("Priority", "u=1, x=:" + base64.b64encode(bytes(range(50))).decode() + ":")])),
+]
+
 
 def _csum(data):
     if len(data) % 2:
