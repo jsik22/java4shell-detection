@@ -25,7 +25,7 @@ in_container() {  # in_container IMAGE DEST SCRIPT OUTFILE
   cid=$(docker create --network none --entrypoint sh "$1" -c "$3")
   docker cp "$WORK/t/." "$cid:$2" >/dev/null
   docker start -a "$cid" > "$4" 2>&1 || true
-  docker rm "$cid" >/dev/null
+  docker rm -v "$cid" >/dev/null
 }
 
 S=/home/snorty/snort3
