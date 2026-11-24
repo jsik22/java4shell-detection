@@ -16,10 +16,12 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 ## 룰
 
+> **최근 업데이트(2026-11-24, v0.10.0)**: Elasticsearch 공개 익스플로잇처럼 서버 안 스크립트(Painless)에서 트리거를 만드는 요청을 잡는 룰을 더했다. 지난 변경은 [CHANGELOG](CHANGELOG.md).
+
 <table>
-<tr><th nowrap>파일</th><th nowrap>엔진</th><th>룰&#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; </th></tr>
-<tr><td nowrap><a href="rules/snort3/java4shell.rules">rules/snort3/java4shell.rules</a></td><td nowrap>Snort 3</td><td>13개(HUNT 6). Basic·Bearer를 두 룰(9114938·9114939)로 나눔</td></tr>
-<tr><td nowrap><a href="rules/suricata/java4shell.rules">rules/suricata/java4shell.rules</a></td><td nowrap>Suricata 7</td><td>12개(HUNT 6). Basic·Bearer를 한 룰(9114938)로 봄</td></tr>
+<tr><th nowrap>파일</th><th nowrap>엔진</th><th>최근 업데이트&#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; </th></tr>
+<tr><td nowrap><a href="rules/snort3/java4shell.rules">rules/snort3/java4shell.rules</a></td><td nowrap>Snort 3</td><td>2026-11-24, <a href="https://github.com/jsik22/java4shell-detection/releases/tag/v0.10.0">v0.10.0</a></td></tr>
+<tr><td nowrap><a href="rules/suricata/java4shell.rules">rules/suricata/java4shell.rules</a></td><td nowrap>Suricata 7</td><td>2026-11-24, <a href="https://github.com/jsik22/java4shell-detection/releases/tag/v0.10.0">v0.10.0</a></td></tr>
 </table>
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
