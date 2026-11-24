@@ -26,18 +26,23 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
 
-- 9114938·9114939: Authorization 헤더(Basic·Bearer). JWT처럼 점(.)으로 나뉜 토큰은 각 조각을 따로 본다.
-- 9114940: URL 쿼리 파라미터 값(인코딩 전 원문을 본다). 값 안의 `접두어=` 뒤 트리거도 본다.
-- 9114941(HUNT): 요청 본문(텍스트·폼·JSON). 정상 데이터에서 오탐이 날 여지가 가장 커서 사냥용으로 이름을 붙였다. 탐지 모드에서 먼저 돌려 본다.
-- 9114942(HUNT): Authorization과 표준 헤더(Host, User-Agent, Accept 계열, Content-Type, Referer, Origin, Sec-Fetch·Sec-Ch 계열 등)를 뺀 나머지 요청 헤더(예: X-Auth-Token, X-Api-Key). 직접 만든 인증 헤더로 Base64를 받는 애플리케이션을 겨냥한다.
-- 9114943(HUNT): Cookie 값.
-- 9114945: `Priority` 헤더(RFC 9218 구조화 필드) 안 바이너리 항목(`:값:`). 정상 `Priority` 값(`u=`, `i`)에는 바이너리 항목이 없다. Talos 공식 룰 설명을 보고 v0.8.0에 더했다.
-- 9114946: Authorization 헤더의 Basic·Bearer가 아닌 스킴(예: ApiKey).
-- 9114947(HUNT): URL 경로 조각('?' 앞 경로에서 '/' 뒤 값).
-- 9114948: 요청 헤더 안 RFC 2047 인코딩 단어(`=?UTF-8?B?값?=`, 예: multipart boundary). 본문 안 인코딩 단어(multipart 이름 등)는 9114941(HUNT)이 본다.
-- 9114949: 트리거 값을 요청에 싣지 않고 서버 안 스크립트(Elasticsearch Painless 등)에서 만드는 요청. 본문에 `Base64.getDecoder()`·`decode`와 함께 '=' byte(`(byte) 61`·`0x3D`·`'='`)나 트리거 모양 문자열 리터럴이 있을 때다. 경로를 가리지 않아 `_execute`·`_search`·`_update_by_query` 등 스크립트를 받는 곳을 모두 본다. 첫 무기화 공개 PoC(Elasticsearch 7.17.28·7.17.29, 2026-11-24)가 이 모양이다.
-- 9114950(HUNT): Elasticsearch API 경로(`/_`)로 보낸 스크립트에 Painless 허용 목록 밖 Java 이름(MethodHandles·defineClass·Class.forName·ClassLoader)이 있을 때. 정상 Painless는 이 이름으로 컴파일되지 않는다. 공개 PoC가 트리거 뒤 체인에서 쓰며, 트리거를 숨긴 변형을 사냥할 때 쓴다.
-- 러프하게 "Base64처럼 생긴 값이 있으면 모두 탐지"하는 방식은 시험에서 정상 요청의 92%에 경보가 나 쓰지 않는다. 인증, 웹소켓 키, HTTP 서명, Digest, CSRF 토큰, 요청·추적 ID가 모두 Base64 문자로만 이루어져 있어 디코딩 없이는 구분할 수 없다. 그래서 모든 룰이 트리거의 핵심 특징(32자 이상 + 정상 패딩이 아닌 '=' 꼬리)만 본다.
+<table>
+<tr><th nowrap>sid</th><th>보는 곳&#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; </th><th nowrap>등급</th></tr>
+<tr><td nowrap>9114938·9114939</td><td>Authorization 헤더(Basic·Bearer). JWT처럼 점(.)으로 나뉜 토큰은 각 조각을 따로 본다. Suricata는 한 룰(9114938)이다.</td><td nowrap>일반</td></tr>
+<tr><td nowrap>9114940</td><td>URL 쿼리 파라미터 값(인코딩 전 원문). 값 안의 <code>접두어=</code> 뒤 트리거도 본다.</td><td nowrap>일반</td></tr>
+<tr><td nowrap>9114941</td><td>요청 본문(텍스트·폼·JSON). 정상 데이터에서 오탐이 날 여지가 가장 커서 사냥용이다. 탐지 모드에서 먼저 돌려 본다.</td><td nowrap>HUNT</td></tr>
+<tr><td nowrap>9114942</td><td>Authorization과 표준 헤더(Host, User-Agent, Accept 계열, Content-Type, Referer, Origin, Sec-Fetch·Sec-Ch 계열 등)를 뺀 나머지 요청 헤더(예: X-Auth-Token, X-Api-Key). 직접 만든 인증 헤더로 Base64를 받는 애플리케이션을 겨냥한다.</td><td nowrap>HUNT</td></tr>
+<tr><td nowrap>9114943</td><td>Cookie 값('이름=값'의 값 자리).</td><td nowrap>HUNT</td></tr>
+<tr><td nowrap>9114944</td><td>Basic 값 안쪽(이중 인코딩). Base64를 풀어 '사용자:비밀번호'의 비밀번호가 트리거 모양인지 본다. 앱이 비밀번호를 다시 디코딩할 때만 위험하다.</td><td nowrap>HUNT</td></tr>
+<tr><td nowrap>9114945</td><td><code>Priority</code> 헤더(RFC 9218 구조화 필드) 안 바이너리 항목(<code>:값:</code>). 정상 <code>Priority</code> 값(<code>u=</code>, <code>i</code>)에는 바이너리 항목이 없다.</td><td nowrap>일반</td></tr>
+<tr><td nowrap>9114946</td><td>Authorization 헤더의 Basic·Bearer가 아닌 스킴(예: ApiKey).</td><td nowrap>일반</td></tr>
+<tr><td nowrap>9114947</td><td>URL 경로 조각('?' 앞 경로에서 '/' 뒤 값).</td><td nowrap>HUNT</td></tr>
+<tr><td nowrap>9114948</td><td>요청 헤더 안 RFC 2047 인코딩 단어(<code>=?UTF-8?B?값?=</code>, 예: multipart boundary). 본문 안 인코딩 단어(multipart 이름 등)는 9114941이 본다.</td><td nowrap>일반</td></tr>
+<tr><td nowrap>9114949</td><td>트리거 값을 요청에 싣지 않고 서버 안 스크립트(Elasticsearch Painless 등)에서 만드는 요청. 본문에 <code>Base64.getDecoder()</code>·<code>decode</code>와 함께 '=' byte(<code>(byte) 61</code>·<code>0x3D</code>·<code>'='</code>)나 트리거 모양 문자열 리터럴이 있을 때다. <code>_execute</code>·<code>_search</code>·<code>_update_by_query</code> 등 스크립트를 받는 경로를 모두 본다. 첫 무기화 공개 PoC(Elasticsearch 7.17.28·7.17.29, 2026-11-24)가 이 모양이다.</td><td nowrap>일반</td></tr>
+<tr><td nowrap>9114950</td><td>Elasticsearch API 경로(<code>/_</code>)로 보낸 스크립트에 Painless 허용 목록 밖 Java 이름(MethodHandles·defineClass·Class.forName·ClassLoader). 정상 Painless는 이 이름으로 컴파일되지 않는다. 공개 PoC가 트리거 뒤 체인에서 쓰며, 트리거를 숨긴 변형 사냥용이다.</td><td nowrap>HUNT</td></tr>
+</table>
+
+러프하게 "Base64처럼 생긴 값이 있으면 모두 탐지"하는 방식은 시험에서 정상 요청의 92%에 경보가 나 쓰지 않는다. 인증, 웹소켓 키, HTTP 서명, Digest, CSRF 토큰, 요청·추적 ID가 모두 Base64 문자로만 이루어져 있어 디코딩 없이는 구분할 수 없다. 그래서 모든 룰이 트리거의 핵심 특징(32자 이상 + 정상 패딩이 아닌 '=' 꼬리)만 본다.
 
 공격 **시도**를 잡을 뿐 성공 여부는 알려 주지 않는다. sid는 지역 룰 범위로 임의로 붙인 값이니 환경에 맞게 바꾼다.
 
