@@ -18,8 +18,8 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 <table>
 <tr><th nowrap>파일</th><th nowrap>엔진</th><th>룰&#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; </th></tr>
-<tr><td nowrap><a href="rules/snort3/java4shell.rules">rules/snort3/java4shell.rules</a></td><td nowrap>Snort 3</td><td>13개(HUNT 6). Authorization의 Basic·Bearer를 두 룰(9114938·9114939)로 나눈다</td></tr>
-<tr><td nowrap><a href="rules/suricata/java4shell.rules">rules/suricata/java4shell.rules</a></td><td nowrap>Suricata 7</td><td>12개(HUNT 6). Authorization의 Basic·Bearer를 한 룰(9114938)로 본다</td></tr>
+<tr><td nowrap><a href="rules/snort3/java4shell.rules">rules/snort3/java4shell.rules</a></td><td nowrap>Snort 3</td><td>13개(HUNT 6). Basic·Bearer를 두 룰(9114938·9114939)로 나눔</td></tr>
+<tr><td nowrap><a href="rules/suricata/java4shell.rules">rules/suricata/java4shell.rules</a></td><td nowrap>Suricata 7</td><td>12개(HUNT 6). Basic·Bearer를 한 룰(9114938)로 봄</td></tr>
 </table>
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
@@ -85,7 +85,7 @@ Talos 공식 룰 13개(2026-11-19, 1:67502~67513, Snort 3 전용 1:301754)는 �
 - 64자 이상 Base64 뒤 비정상 '=' 꼬리만 본다. 그래서 32·35·49자 같은 짧은 값, `===` 꼬리, Bearer·JWT 조각, 일반 쿼리·본문·쿠키·사용자 정의 헤더, Basic 안쪽 이중 인코딩은 보지 않는다.
 - 이 저장소는 v0.9.0에서 Talos가 다루는 위치 중 놓치던 곳(Authorization의 다른 스킴, URL 경로 조각, 쿼리 값 안 `접두어=` 뒤, multipart boundary·이름의 인코딩 단어)을 보강했다. 이 위치의 시험 케이스 11건은 Talos 룰을 보고 만들어 Talos 쪽에 유리하고, 나머지 케이스는 이 저장소 룰과 함께 만들어 이 저장소 쪽에 유리하다. 운영 트래픽 기준 비교는 아니다.
 - ET 기본 활성 룰은 공개 PoC의 고정 문자열(`A` 반복 뒤 `=`)과 PoC 도구 User-Agent(11-19 갱신에서 사냥용으로 내려감)를 찾는다. Painless 케이스는 스크립트 안 문자열 리터럴로 `A` 반복을 쓴 1건만 잡는다. 다른 글자로 된 값, `B=`·`BC=`처럼 꼬리 글자가 붙은 모양, 64자가 아닌 길이, JWT 조각, Basic 안쪽 이중 인코딩, Priority 헤더를 놓친다.
-- ET의 주석 처리된 사냥용 3개는 11-19 갱신에서 4글자 묶음 단위로 길이를 세도록 바뀌어, 이전 판에서 정상 패딩 헤더·본문에 나던 오탐(이전 시험 56건)이 사라졌다. 남은 오탐 1건은 URL 경로의 정상 패딩(`==`) 값이다. 64자 미만 값과 `===` 꼬리는 보지 않는다.
+- ET의 주석 처리된 사냥용 3개는 11-19 갱신에서 4글자 묶음 단위로 길이를 세도록 바뀌어, 이전 판의 정상 패딩 헤더·본문 오탐(이전 시험 56건)이 사라졌다. 남은 오탐 1건은 URL 경로의 정상 패딩(`==`) 값이다. 64자 미만 값과 `===` 꼬리는 보지 않는다.
 - 1:67513은 Elasticsearch `/_search` 요청 본문 안 Painless 스크립트가 정해진 문자열(65바이트 배열과 그 예외 처리 구문)을 모두 갖출 때만 울린다. 첫 무기화 공개 PoC는 `/_scripts/painless/_execute`로 보내고 문자열도 달라, 실제 PoC 본문으로 만든 요청에서 67513은 울리지 않았다(2026-11-24, Snort 3.10 실행). 이 저장소는 v0.10.0부터 9114949·9114950이 같은 경로를 넓게 본다.
 
 ## 보강 방식
