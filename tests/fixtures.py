@@ -252,6 +252,53 @@ def _pkt(src, dst, sport, dport, seq, ack, flags, payload=b""):
     return b"\x02\x00\x00\x00\x00\x02\x02\x00\x00\x00\x00\x01\x08\x00" + iph + tcp + payload
 
 
+# --- Elasticsearch Painless 경로(9114949·9114950). 트리거 값을 요청에 싣지 않고 서버 안 스크립트에서 byte 배열로 만든다.
+# jburgess-r7/java4shell-elasticsearch-poc(2026-11-24 09:20Z, es7.py): POST /_scripts/painless/_execute, 본문 {"script":{"lang":"painless","source":…,"params":…}}.
+# 저장소의 페이로드는 옮기지 않는다. 트리거를 만드는 최소 모양(A*128+'='를 byte 배열로 만들어 Base64 디코더에 넣음)과
+# 그 뒤 체인에서 쓰는 Painless 허용 목록 밖 이름(MethodHandles·defineClass)만 넣는다. 정상 대량 뒤에 둔다.
+def es(path, script, method="POST"):
+    return req(method, path, [("Content-Type", "application/json")], json.dumps(script))
+
+
+TRIG_BYTES = ("byte[] b = new byte[129]; for (int i = 0; i < 128; ++i) { b[i] = (byte) 65; } b[128] = (byte) 61; "
+              "return Base64.getDecoder().decode(b).length;")
+PAD = "// " + "x" * 76 + "\n"
+CASES += [
+    ("E-exec-bytes", "poc-shape", True, "jburgess-r7 PoC 모양: _execute, byte 배열 A*128+'='(byte 65·61)를 Base64 디코더에",
+     es("/_scripts/painless/_execute", {"script": {"lang": "painless", "source": TRIG_BYTES}})),
+    ("E-exec-large", "poc-shape", True, "jburgess-r7 PoC 모양: 스크립트 앞에 약 30KB 다른 코드, 트리거 구성은 끝에",
+     es("/_scripts/painless/_execute", {"script": {"lang": "painless", "source": PAD * 380 + TRIG_BYTES, "params": {"marker_text": "x"}}})),
+    ("E-exec-char", "synthetic", True, "_execute, '=' 를 문자 리터럴 (byte) '=' 로",
+     es("/_scripts/painless/_execute", {"script": {"source": TRIG_BYTES.replace("(byte) 61", "(byte) '='")}})),
+    ("E-exec-hex", "synthetic", True, "_execute, '=' 를 0x3D 로",
+     es("/_scripts/painless/_execute", {"script": {"source": TRIG_BYTES.replace("(byte) 61", "(byte) 0x3D")}})),
+    ("E-search-talos", "talos-shape", True, "Talos 67513 위치: _search script_fields에서 new byte[65], [64]=(byte)61",
+     es("/logs/_search", {"script_fields": {"t": {"script": {"source": "byte[] b = new byte[65]; for (int i = 0; i < 64; i++) { b[i] = (byte)65; } b[64] = (byte)61; return Base64.getDecoder().decode(b);"}}}})),
+    ("E-update", "synthetic", True, "_update_by_query 스크립트 안 트리거 구성",
+     es("/idx/_update_by_query", {"script": {"source": TRIG_BYTES, "lang": "painless"}})),
+    ("E-literal", "synthetic", True, "_execute, 문자열 리터럴 A*64+'='를 getBytes()로 디코더에",
+     es("/_scripts/painless/_execute", {"script": {"source": "return Base64.getDecoder().decode(\"" + A * 64 + "=\".getBytes()).length;"}})),
+    ("E-chain", "poc-shape", True, "jburgess-r7 PoC 모양(HUNT): 스크립트에 Painless 허용 목록 밖 MethodHandles·defineClass",
+     es("/_scripts/painless/_execute", {"script": {"source": "def l = MethodHandles.lookup(); def c = l.defineClass(params.marker_class); return c;", "params": {"marker_class": "x"}}})),
+    ("EN-exec-math", "es-benign", False, "정상 _execute 산술",
+     es("/_scripts/painless/_execute", {"script": {"source": "params.count / params.total", "params": {"count": 100.0, "total": 1000.0}}})),
+    ("EN-decode-field", "es-benign", False, "정상 Base64 디코딩(문서 필드 값)",
+     es("/logs/_search", {"script_fields": {"raw": {"script": {"source": "new String(Base64.getDecoder().decode(doc['payload.keyword'].value))"}}}})),
+    ("EN-bytes", "es-benign", False, "정상 byte 배열 다루기(디코딩 없음, (byte) 61 없음)",
+     es("/_scripts/painless/_execute", {"script": {"source": "byte[] b = new byte[16]; for (int i = 0; i < 16; ++i) { b[i] = (byte) i; } return b.length;"}})),
+    ("EN-encode", "es-benign", False, "정상 Base64 인코딩과 '=' 문자열",
+     es("/_scripts/painless/_execute", {"script": {"source": "String s = 'k=' + params.v; return Base64.getEncoder().encodeToString(s.getBytes());", "params": {"v": "abc"}}})),
+    ("EN-update", "es-benign", False, "정상 _update 카운터",
+     es("/idx/_update/1", {"script": {"source": "ctx._source.counter += params.count", "lang": "painless", "params": {"count": 4}}})),
+    ("EN-ingest", "es-benign", False, "정상 ingest 파이프라인 script 프로세서",
+     es("/_ingest/pipeline/p1", {"processors": [{"script": {"source": "ctx.tags = ctx.msg.splitOnToken('=')"}}]}, "PUT")),
+    ("EN-search", "es-benign", False, "정상 _search 정렬 스크립트",
+     es("/products/_search", {"sort": {"_script": {"type": "number", "order": "desc", "script": {"source": "doc['price'].value * params.factor", "params": {"factor": 1.1}}}}})),
+    ("EN-decode-padded", "es-benign", False, "정상 Base64 디코딩(정상 패딩 문자열 리터럴)",
+     es("/_scripts/painless/_execute", {"script": {"source": "return Base64.getDecoder().decode('" + base64.b64encode(bytes(range(50))).decode() + "').length;"}})),
+]
+
+
 def main(out_pcap, out_index):
     cli, srv = "192.0.2.10", "198.51.100.20"
     t = 1763424000.0
@@ -261,11 +308,13 @@ def main(out_pcap, out_index):
         sport = 20000 + n
         index[sport] = {"id": cid, "group": group, "expect": expect, "desc": desc}
         cs, ss, q = 1000, 5000, len(request)
+        # 요청은 MSS(1460바이트) 단위로 나눈다. 한 세그먼트에 통째로 넣으면 Snort 기본 캡처 길이(1518)에서 잘린다(2026-11-24 30KB 본문 케이스).
+        data = [(cli, srv, sport, 80, cs + 1 + off, ss + 1, 0x18, request[off:off + 1460]) for off in range(0, q, 1460)]
         for s in [
             (cli, srv, sport, 80, cs, 0, 0x02, b""),
             (srv, cli, 80, sport, ss, cs + 1, 0x12, b""),
             (cli, srv, sport, 80, cs + 1, ss + 1, 0x10, b""),
-            (cli, srv, sport, 80, cs + 1, ss + 1, 0x18, request),
+            *data,
             (srv, cli, 80, sport, ss + 1, cs + 1 + q, 0x10, b""),
             (srv, cli, 80, sport, ss + 1, cs + 1 + q, 0x18, resp),
             (cli, srv, sport, 80, cs + 1 + q, ss + 1 + len(resp), 0x10, b""),

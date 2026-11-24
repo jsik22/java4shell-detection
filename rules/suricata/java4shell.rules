@@ -1,4 +1,4 @@
-# java4shell-detection v0.9.1 (Suricata 7)
+# java4shell-detection v0.10.0 (Suricata 7)
 # CVE-2026-114938 (Java4Shell): HTTP 요청 값 끝의 비정상 Base64 패딩 꼬리를 찾는다.
 # 트리거 모양: Base64 문자 32자 이상 뒤 '='로 끝나며, 전체 길이를 4로 나눈 나머지가 1~3(정상 패딩은 0).
 # 자체 제작·자체 시험이며 계속 업데이트 중이다. 제3자 검증 전이니 차단 대신 탐지(alert) 모드로 먼저 돌린다. HUNT 룰은 사냥용이다.
@@ -34,3 +34,11 @@ alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT malfor
 
 # 9114948 요청 헤더 안 RFC 2047 인코딩 단어(=?charset?B?값?=, multipart boundary 등)의 값. Talos 67509가 다루는 위치.
 alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 malformed Base64 tail in RFC 2047 encoded word in header"; flow:to_server,established; http.header; content:"?B?"; nocase; fast_pattern; pcre:"/=\?[^?\s]{1,40}\?B\?(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?=\?=)/i"; classtype:attempted-admin; sid:9114948; rev:1;)
+
+# 9114949 서버 안 스크립트(Elasticsearch Painless 등)가 트리거를 직접 만드는 요청. 요청 값에는 트리거가 없어 다른 룰이 못 본다.
+# 본문에 Base64.getDecoder()·decode와 함께 '=' byte((byte) 61·0x3D·'=') 또는 트리거 모양 문자열 리터럴이 있을 때. 공개 PoC(_execute)·Talos 67513(_search) 모양.
+alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 script builds Base64 trigger server-side (Painless)"; flow:to_server,established; http.request_body; content:"getDecoder"; fast_pattern; content:"decode"; pcre:"/\(\s*byte\s*\)\s*(?:61\b|0x3[Dd]\b|'=')|(?:\x5c\x22|')(?:[A-Za-z0-9+\/_-]{4}){8,}(?:={1,3}|[A-Za-z0-9+\/_-]={1,2}|[A-Za-z0-9+\/_-]{2}=)(?:\x5c\x22|')/"; classtype:attempted-admin; sid:9114949; rev:1;)
+
+# 9114950 HUNT Elasticsearch API(경로에 '/_')로 보낸 스크립트에 Painless 허용 목록 밖 Java 이름(MethodHandles·defineClass·Class.forName·ClassLoader).
+# 정상 Painless는 이 이름을 쓸 수 없어 컴파일되지 않는다. 공개 PoC가 트리거 뒤 체인에서 쓴다. 트리거를 숨긴 변형을 사냥할 때.
+alert http any any -> any any (msg:"LOCAL Java4Shell CVE-2026-114938 HUNT Elasticsearch script uses non-allowlisted Java reflection"; flow:to_server,established; http.uri; content:"/_"; http.request_body; content:"script"; fast_pattern; pcre:"/\b(?:MethodHandles|defineClass|Class\s*\.\s*forName|ClassLoader)\b/"; classtype:attempted-admin; sid:9114950; rev:1;)

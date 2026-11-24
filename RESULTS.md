@@ -1,9 +1,9 @@
 # 회귀 시험 결과
 
-- 실행: 2026-11-19T22:26Z
+- 실행: 2026-11-24T11:55Z
 - 엔진: Suricata version 7.0.17, Snort++ 3.10.0.0
 
-**suricata**: 공격형 53/53 탐지(알려진 공백 0) · 정상 357/357 조용(오탐 0)
+**suricata**: 공격형 61/61 탐지(알려진 공백 0) · 정상 365/365 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -124,8 +124,24 @@
 | TN-csp-path | talos-shape | False | - | 정상 경로 조각(URL-safe 64자) |
 | TN-path-pad | talos-shape | False | - | 정상 경로 조각(정상 패딩 '==') |
 | TN-pagetoken | talos-shape | False | - | 정상 next-page-token(정상 Base64 64자) |
+| E-exec-bytes | poc-shape | True | 탐지 9114949 | jburgess-r7 PoC 모양: _execute, byte 배열 A*128+'='(byte 65·61)를 Base64 디코더에 |
+| E-exec-large | poc-shape | True | 탐지 9114949 | jburgess-r7 PoC 모양: 스크립트 앞에 약 30KB 다른 코드, 트리거 구성은 끝에 |
+| E-exec-char | synthetic | True | 탐지 9114949 | _execute, '=' 를 문자 리터럴 (byte) '=' 로 |
+| E-exec-hex | synthetic | True | 탐지 9114949 | _execute, '=' 를 0x3D 로 |
+| E-search-talos | talos-shape | True | 탐지 9114949 | Talos 67513 위치: _search script_fields에서 new byte[65], [64]=(byte)61 |
+| E-update | synthetic | True | 탐지 9114949 | _update_by_query 스크립트 안 트리거 구성 |
+| E-literal | synthetic | True | 탐지 9114949 | _execute, 문자열 리터럴 A*64+'='를 getBytes()로 디코더에 |
+| E-chain | poc-shape | True | 탐지 9114950 | jburgess-r7 PoC 모양(HUNT): 스크립트에 Painless 허용 목록 밖 MethodHandles·defineClass |
+| EN-exec-math | es-benign | False | - | 정상 _execute 산술 |
+| EN-decode-field | es-benign | False | - | 정상 Base64 디코딩(문서 필드 값) |
+| EN-bytes | es-benign | False | - | 정상 byte 배열 다루기(디코딩 없음, (byte) 61 없음) |
+| EN-encode | es-benign | False | - | 정상 Base64 인코딩과 '=' 문자열 |
+| EN-update | es-benign | False | - | 정상 _update 카운터 |
+| EN-ingest | es-benign | False | - | 정상 ingest 파이프라인 script 프로세서 |
+| EN-search | es-benign | False | - | 정상 _search 정렬 스크립트 |
+| EN-decode-padded | es-benign | False | - | 정상 Base64 디코딩(정상 패딩 문자열 리터럴) |
 
-**snort**: 공격형 53/53 탐지(알려진 공백 0) · 정상 357/357 조용(오탐 0)
+**snort**: 공격형 61/61 탐지(알려진 공백 0) · 정상 365/365 조용(오탐 0)
 
 | 케이스 | 묶음 | 기대 | 결과 | 설명 |
 |---|---|---|---|---|
@@ -246,4 +262,20 @@
 | TN-csp-path | talos-shape | False | - | 정상 경로 조각(URL-safe 64자) |
 | TN-path-pad | talos-shape | False | - | 정상 경로 조각(정상 패딩 '==') |
 | TN-pagetoken | talos-shape | False | - | 정상 next-page-token(정상 Base64 64자) |
+| E-exec-bytes | poc-shape | True | 탐지 9114949 | jburgess-r7 PoC 모양: _execute, byte 배열 A*128+'='(byte 65·61)를 Base64 디코더에 |
+| E-exec-large | poc-shape | True | 탐지 9114949 | jburgess-r7 PoC 모양: 스크립트 앞에 약 30KB 다른 코드, 트리거 구성은 끝에 |
+| E-exec-char | synthetic | True | 탐지 9114949 | _execute, '=' 를 문자 리터럴 (byte) '=' 로 |
+| E-exec-hex | synthetic | True | 탐지 9114949 | _execute, '=' 를 0x3D 로 |
+| E-search-talos | talos-shape | True | 탐지 9114949 | Talos 67513 위치: _search script_fields에서 new byte[65], [64]=(byte)61 |
+| E-update | synthetic | True | 탐지 9114949 | _update_by_query 스크립트 안 트리거 구성 |
+| E-literal | synthetic | True | 탐지 9114949 | _execute, 문자열 리터럴 A*64+'='를 getBytes()로 디코더에 |
+| E-chain | poc-shape | True | 탐지 9114950 | jburgess-r7 PoC 모양(HUNT): 스크립트에 Painless 허용 목록 밖 MethodHandles·defineClass |
+| EN-exec-math | es-benign | False | - | 정상 _execute 산술 |
+| EN-decode-field | es-benign | False | - | 정상 Base64 디코딩(문서 필드 값) |
+| EN-bytes | es-benign | False | - | 정상 byte 배열 다루기(디코딩 없음, (byte) 61 없음) |
+| EN-encode | es-benign | False | - | 정상 Base64 인코딩과 '=' 문자열 |
+| EN-update | es-benign | False | - | 정상 _update 카운터 |
+| EN-ingest | es-benign | False | - | 정상 ingest 파이프라인 script 프로세서 |
+| EN-search | es-benign | False | - | 정상 _search 정렬 스크립트 |
+| EN-decode-padded | es-benign | False | - | 정상 Base64 디코딩(정상 패딩 문자열 리터럴) |
 

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.10.0 — 2026-11-24
+
+- 첫 무기화 공개 PoC(Elasticsearch 7.17.28·7.17.29, 2026-11-24 공개)는 트리거 값을 요청에 싣지 않고 서버 안 Painless 스크립트에서 byte 배열로 만든다. 그동안 이 저장소 룰은 요청 값만 봐서 설계상 이 경로를 못 봤다(v0.8.0 README에 한계로 적음).
+- 9114949 추가: 요청 본문에 `Base64.getDecoder()`·`decode`와 함께 '=' byte(`(byte) 61`·`0x3D`·`'='`) 또는 트리거 모양 문자열 리터럴이 있을 때. 경로를 가리지 않아 `_execute`·`_search`·`_update_by_query` 등 스크립트를 받는 곳을 모두 본다.
+- 9114950(HUNT) 추가: Elasticsearch API 경로(`/_`)로 보낸 스크립트에 Painless 허용 목록 밖 Java 이름(MethodHandles·defineClass·Class.forName·ClassLoader). 정상 Painless는 이 이름으로 컴파일되지 않는다. 트리거를 숨긴 변형 사냥용.
+- 시험 케이스 추가: 공격형 8건(PoC 요청 모양 3건은 페이로드 없이 트리거 구성만, Talos 67513 위치 1건, 변형 4건), 정상 대조 8건(산술·필드 디코딩·byte 배열·인코딩·_update·ingest·정렬·정상 패딩 리터럴).
+
 ## v0.9.1 — 2026-11-20
 
 - 문서: ET Open 2026-11-19 갱신판(사냥용 룰 2072833·2072834 rev 2 길이 조건 수정, User-Agent 룰 2072829 사냥용 등급)을 같은 시험 데이터로 다시 비교해 README에 적었다. 기본 활성 3개 26/53·오탐 0, 6개 전부 32/53·오탐 1.
