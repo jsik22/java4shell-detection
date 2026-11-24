@@ -16,10 +16,11 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 
 ## 룰
 
-| 파일 | 엔진 | sid |
-|---|---|---|
-| [`rules/snort3/java4shell.rules`](rules/snort3/java4shell.rules) | Snort 3 | 9114938(Authorization Basic), 9114939(Authorization Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT), 9114945(Priority 헤더 바이너리 항목), 9114946(Authorization 그 밖의 스킴), 9114947(URL 경로 조각, HUNT), 9114948(헤더 RFC 2047 인코딩 단어), 9114949(서버 안 스크립트의 트리거 구성), 9114950(Elasticsearch 스크립트의 허용 목록 밖 Java 이름, HUNT) |
-| [`rules/suricata/java4shell.rules`](rules/suricata/java4shell.rules) | Suricata 7 | 9114938(Authorization Basic·Bearer), 9114940(URL 쿼리), 9114941(요청 본문, HUNT), 9114942(그 밖의 헤더, HUNT), 9114943(Cookie, HUNT), 9114944(Basic 안쪽 이중 인코딩, HUNT), 9114945(Priority 헤더 바이너리 항목), 9114946(Authorization 그 밖의 스킴), 9114947(URL 경로 조각, HUNT), 9114948(헤더 RFC 2047 인코딩 단어), 9114949(서버 안 스크립트의 트리거 구성), 9114950(Elasticsearch 스크립트의 허용 목록 밖 Java 이름, HUNT) |
+<table>
+<tr><th nowrap>파일</th><th nowrap>엔진</th><th>룰&#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; &#12288; </th></tr>
+<tr><td nowrap><a href="rules/snort3/java4shell.rules">rules/snort3/java4shell.rules</a></td><td nowrap>Snort 3</td><td>13개(HUNT 6). Authorization의 Basic·Bearer를 두 룰(9114938·9114939)로 나눈다</td></tr>
+<tr><td nowrap><a href="rules/suricata/java4shell.rules">rules/suricata/java4shell.rules</a></td><td nowrap>Suricata 7</td><td>12개(HUNT 6). Authorization의 Basic·Bearer를 한 룰(9114938)로 본다</td></tr>
+</table>
 
 탐지 대상: 32자 이상의 Base64 값이 정상 패딩이 아닌 '='로 끝나는 요청(`=`, `==`, `===`, `X=`, `X==`, `XY=` 꼬리). URL-safe 문자(`-`, `_`)와 URL 인코딩(`%2B`, `%2F`, `%3D`)도 본다.
 
@@ -73,7 +74,7 @@ Talos 공식 룰 13개(2026-11-19, 1:67502~67513, Snort 3 전용 1:301754)는 �
 
 | 룰 묶음 | 공격형 61건 | 정상 365건 오탐 |
 |---|---|---|
-| 이 저장소 v0.10.0(Snort 3·Suricata) | 61 | 0 |
+| CyberTissue(Snort 3·Suricata) | 61 | 0 |
 | Talos 13개(Snort 3) | 23 | 0 |
 | ET 기본 활성 3개(11-19 갱신판, Suricata) | 27 | 0 |
 | ET 6개 전부(주석 처리된 사냥용 3개 포함) | 33 | 1 |
