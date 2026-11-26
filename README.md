@@ -4,7 +4,7 @@ Java4Shell(CVE-2026-114938) 네트워크 탐지 룰(Snort 3·Suricata)과 그 �
 Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), with a synthetic-pcap regression test. Rules only — no exploit code.
 
 > **주의 / Disclaimer**
-> 이 룰은 [CyberTissue](https://github.com/jsik22/cybertissue)가 공개된 기술 정보와 공개 PoC의 요청 모양을 바탕으로 직접 만들고 직접 시험한 것으로, **계속 업데이트 중입니다.** 제3자 검증과 실제 운영 트래픽 오탐 확인은 거치지 않았으니 차단(drop) 대신 탐지(alert) 모드로 먼저 돌려 보세요. Emerging Threats·Talos 공식 룰과의 비교는 [공식 룰과 비교](#공식-룰과-비교)에 있고, 두 룰은 함께 쓸 수 있습니다.
+> 이 룰은 공개된 기술 정보와 공개 PoC의 요청 모양을 바탕으로 직접 만들고 직접 시험한 것으로, **계속 업데이트 중입니다.** 제3자 검증과 실제 운영 트래픽 오탐 확인은 거치지 않았으니 차단(drop) 대신 탐지(alert) 모드로 먼저 돌려 보세요. Emerging Threats·Talos 공식 룰과의 비교는 [공식 룰과 비교](#공식-룰과-비교)에 있고, 두 룰은 함께 쓸 수 있습니다.
 > These rules are self-made, self-tested, and continuously updated. They have not been validated by third parties or against production traffic, so run them in alert mode first. A comparison with the official Emerging Threats and Talos rules is in the section below; both rule sets can be used together.
 
 ## 취약점 요약
@@ -81,7 +81,7 @@ Talos 공식 룰 13개(2026-11-19, 1:67502~67513, Snort 3 전용 1:301754)는 �
 
 | 룰 묶음 | 공격형 61건 | 정상 365건 오탐 |
 |---|---|---|
-| CyberTissue(Snort 3·Suricata) | 61 | 0 |
+| java4shell-detection(Snort 3·Suricata) | 61 | 0 |
 | Talos 13개(Snort 3) | 23 | 0 |
 | ET 기본 활성 3개(11-19 갱신판, Suricata) | 27 | 0 |
 | ET 6개 전부(주석 처리된 사냥용 3개 포함) | 33 | 1 |
