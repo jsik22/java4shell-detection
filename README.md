@@ -1,6 +1,6 @@
 # java4shell-detection
 
-Java4Shell(CVE-2026-114938) 네트워크 탐지 룰(Snort 3·Suricata)과 그 회귀 시험만 다루는 저장소로, [CTiSSUE](https://github.com/jsik22/cybertissue)의 하위 프로젝트입니다.
+Java4Shell(CVE-2026-114938) 네트워크 탐지 룰(Snort 3·Suricata)과 그 회귀 시험만 다루는 저장소로, [CTiSSUE](https://github.com/jsik22/ctissue)의 하위 프로젝트입니다.
 Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), with a synthetic-pcap regression test. Rules only — no exploit code. A sub-project of CTiSSUE.
 
 > **주의 / Disclaimer**
