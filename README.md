@@ -1,7 +1,7 @@
 # java4shell-detection
 
-Java4Shell(CVE-2026-114938) 네트워크 탐지 룰(Snort 3·Suricata)과 그 회귀 시험만 다루는 저장소로, [CTiSSUE](https://github.com/jsik22/ctissue)의 하위 프로젝트입니다.
-Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), with a synthetic-pcap regression test. Rules only — no exploit code. A sub-project of CTiSSUE.
+Java4Shell(CVE-2026-114938) 네트워크 탐지 룰(Snort 3·Suricata)과 그 회귀 시험만 다루는 저장소로, [C.TiSSUE](https://github.com/jsik22/ctissue)의 하위 프로젝트입니다.
+Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), with a synthetic-pcap regression test. Rules only — no exploit code. A sub-project of C.TiSSUE.
 
 > **주의 / Disclaimer**
 > 이 룰은 공개된 기술 정보와 공개 PoC의 요청 모양을 바탕으로 직접 만들고 직접 시험한 것으로, **계속 업데이트 중입니다.** 제3자 검증과 실제 운영 트래픽 오탐 확인은 거치지 않았으니 차단(drop) 대신 탐지(alert) 모드로 먼저 돌려 보세요. Emerging Threats·Talos 공식 룰과의 비교는 [공식 룰과 비교](#공식-룰과-비교)에 있고, 두 룰은 함께 쓸 수 있습니다.
@@ -12,7 +12,7 @@ Snort 3 and Suricata network detection rules for Java4Shell (CVE-2026-114938), w
 - OpenJDK HotSpot의 x86-64 Base64 디코딩 최적화 코드(AVX-512 VBMI)가 입력 끝의 '=' 패딩을 처리하다 출력 길이를 잘못 계산해, 디코딩 결과 배열 끝 너머로 62바이트를 덮어쓴다. 발견·명명: [Calif](https://calif.io/java4shell/).
 - 영향: Java 17(17.0.6 이상)·21·25·27 계열, AVX-512 VBMI를 지원하는 x86-64 CPU(인텔 Xeon Ice Lake 이후, AMD Zen 4 이후). ARM은 해당 없음.
 - 수정: 2026-11-17 오라클·OpenJDK 보안 릴리스(17.0.21, 21.0.13, 25.0.5, 27.0.1 뒤에 ".1"이 붙은 빌드)와 각 배포판의 해당 빌드. [Oracle CSPU Nov 2026](https://www.oracle.com/security-alerts/cspunov2026.html) · [OpenJDK advisory](https://openjdk.org/groups/vulnerability/advisories/2026-11-17)
-- 해설: [CTiSSUE 노트](https://jsik22.github.io/cybertissue-notes/2026/11/17/java-cve-2026-114938/)
+- 해설: [C.TiSSUE 노트](https://jsik22.github.io/cybertissue-notes/2026/11/17/java-cve-2026-114938/)
 
 ## 룰
 
@@ -97,7 +97,7 @@ Talos 공식 룰 13개(2026-11-19, 1:67502~67513, Snort 3 전용 1:301754)는 �
 
 ## 보강 방식
 
-CTiSSUE가 공개 PoC·보고서·공식 룰을 계속 모니터링한다. 새 요청 모양이 나오면 `poc-shape` 케이스로 옮기고, 룰을 고쳐 회귀 시험을 통과하면 반영하고 릴리스 태그를 붙인다. 바뀐 내용은 [CHANGELOG](CHANGELOG.md)와 CTiSSUE 노트에 적는다.
+C.TiSSUE가 공개 PoC·보고서·공식 룰을 계속 모니터링한다. 새 요청 모양이 나오면 `poc-shape` 케이스로 옮기고, 룰을 고쳐 회귀 시험을 통과하면 반영하고 릴리스 태그를 붙인다. 바뀐 내용은 [CHANGELOG](CHANGELOG.md)와 C.TiSSUE 노트에 적는다.
 
 이 저장소에는 룰, 합성 시험 데이터 생성기, 채점기만 둔다. 익스플로잇 코드·페이로드·PoC 사본은 두지 않는다.
 
